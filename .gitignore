@@ -1,0 +1,11 @@
+.idea/
+cmake-build-*/
+build/
+
+*.pyc
+*.so
+
+bin/
+.vscode/
+
+rocketmq/**/*.cpp
