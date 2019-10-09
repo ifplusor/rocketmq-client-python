@@ -148,6 +148,39 @@ cdef extern from "MQConsumer.h" namespace "rocketmq" nogil:
         void subscribe(const string& topic, const string& subExpression)
 
 
+cdef extern from "RPCHook.h" namespace "rocketmq":
+    cdef cppclass RPCHook:
+        pass
+
+
+cdef extern from "SessionCredentials.h" namespace "rocketmq":
+    cdef cppclass SessionCredentials:
+        SessionCredentials() except +
+        SessionCredentials(const string& accessKey, const string& secretKey, const string& authChannel) except +
+
+        const string& getAccessKey()
+        void setAccessKey(const string& accessKey)
+
+        const string& getSecretKey() const
+        void setSecretKey(const string& secretKey)
+
+        const string& getSignature() const
+        void setSignature(const string& signature)
+
+        const string& getSignatureMethod() const
+        void setSignatureMethod(const string& signatureMethod)
+
+        const string& getAuthChannel() const
+        void setAuthChannel(const string& channel)
+
+        bint isValid() const
+
+
+cdef extern from "ClientRPCHook.h" namespace "rocketmq":
+    cdef cppclass ClientRPCHook(RPCHook):
+        ClientRPCHook(const SessionCredentials& sessionCredentials) except +
+
+
 cdef extern from "MQClientConfig.h" namespace "rocketmq" nogil:
     cdef cppclass MQClientConfig:
         const string& getGroupName() const
@@ -169,11 +202,13 @@ cdef extern from "MQClient.h" namespace "rocketmq" nogil:
 cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQProducer(MQProducer, MQClient):
         DefaultMQProducer(const string& groupname) except +
+        DefaultMQProducer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
 
 
 cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQPushConsumer(MQPushConsumer, MQClient):
-        DefaultMQPushConsumer(const string &) except +
+        DefaultMQPushConsumer(const string& groupname) except +
+        DefaultMQPushConsumer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
 
         int getConsumeThreadNum() const
         void setConsumeThreadNum(int)

@@ -15,6 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .producer import *
-from .consumer import *
-from .remoting import *
+from ..native import PySessionCredentials as SessionCredentials
+from ..native import PyClientRPCHook as ClientRPCHook
