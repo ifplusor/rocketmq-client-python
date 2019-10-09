@@ -28,6 +28,28 @@ from rocketmq cimport SendStatus, SendResult
 from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper
 from rocketmq cimport MQClient, DefaultMQProducer, DefaultMQPushConsumer
 
+import sys
+
+is_py3 = bool(sys.version_info[0] >= 3)
+
+def str2bytes(s):
+    if is_py3:
+        if type(s) is str:
+            return s.encode("utf-8")
+        else:
+            return s
+    else:
+        if type(s) is unicode:
+            return s.encode("utf-8")
+        else:
+            return s
+
+def bytes2str(b):
+    if is_py3:
+        return b.decode("utf-8")
+    else:
+        return b
+
 cdef class PyMessage:
     """Wrapper of MQMessage"""
 
@@ -57,41 +79,41 @@ cdef class PyMessage:
             self.keys = keys
 
     def get_property(self, name):
-        return self._MQMessage_impl_obj.getProperty(name)
+        return bytes2str(self._MQMessage_impl_obj.getProperty(str2bytes(name)))
 
     def put_property(self, name, value):
-        self._MQMessage_impl_obj.putProperty(name, value)
+        self._MQMessage_impl_obj.putProperty(str2bytes(name), str2bytes(value))
 
     def clear_property(self, name):
-        self._MQMessage_impl_obj.clearProperty(name)
+        self._MQMessage_impl_obj.clearProperty(str2bytes(name))
 
     @property
     def topic(self):
-        return self._MQMessage_impl_obj.getTopic()
+        return bytes2str(self._MQMessage_impl_obj.getTopic())
 
     @topic.setter
     def topic(self, topic):
-        self._MQMessage_impl_obj.setTopic(topic)
+        self._MQMessage_impl_obj.setTopic(str2bytes(topic))
 
     @property
     def tags(self):
-        return self._MQMessage_impl_obj.getTags()
+        return bytes2str(self._MQMessage_impl_obj.getTags())
 
     @tags.setter
     def tags(self, tags):
-        self._MQMessage_impl_obj.setTags(tags)
+        self._MQMessage_impl_obj.setTags(str2bytes(tags))
 
     @property
     def keys(self):
-        return self._MQMessage_impl_obj.getKeys()
+        return bytes2str(self._MQMessage_impl_obj.getKeys())
 
     @keys.setter
     def keys(self, keys):
-        # self._impl_obj.setKeys(<string> keys)
         if isinstance(keys, str):
-            self._MQMessage_impl_obj.setKeys(<string> keys)
+            self._MQMessage_impl_obj.setKeys(<string> str2bytes(keys))
         elif isinstance(keys, list) or isinstance(keys, tuple) or isinstance(keys, set):
-            self._MQMessage_impl_obj.setKeys(<vector[string]> keys)
+            new_keys = map(lambda key: str2bytes(key), keys)
+            self._MQMessage_impl_obj.setKeys(<vector[string]> new_keys)
 
     @property
     def delay_time_level(self):
@@ -124,10 +146,10 @@ cdef class PyMessage:
 
     @body.setter
     def body(self, body):
-        self._MQMessage_impl_obj.setBody(body)
+        self._MQMessage_impl_obj.setBody(str2bytes(body))
 
     def __str__(self):
-        return self._MQMessage_impl_obj.toString()
+        return bytes2str(self._MQMessage_impl_obj.toString())
 
 cdef class PyMessageExt(PyMessage):
     """Wrapper of MQMessageExt"""
@@ -182,7 +204,7 @@ cdef class PyMessageExt(PyMessage):
 
     @property
     def born_host(self):
-        return self._MQMessageExt_impl_obj.getBornHostString()
+        return bytes2str(self._MQMessageExt_impl_obj.getBornHostString())
 
     @property
     def store_timestamp(self):
@@ -190,7 +212,7 @@ cdef class PyMessageExt(PyMessage):
 
     @property
     def store_host(self):
-        return self._MQMessageExt_impl_obj.getStoreHostString()
+        return bytes2str(self._MQMessageExt_impl_obj.getStoreHostString())
 
     @property
     def reconsume_times(self):
@@ -202,7 +224,7 @@ cdef class PyMessageExt(PyMessage):
 
     @property
     def msg_id(self):
-        return self._MQMessageExt_impl_obj.getMsgId()
+        return bytes2str(self._MQMessageExt_impl_obj.getMsgId())
 
 cpdef enum PySendStatus:
     SEND_OK = SendStatus.SEND_OK
@@ -233,11 +255,11 @@ cdef class PySendResult:
 
     @property
     def msg_id(self):
-        return self._SendResult_impl_obj.getMsgId()
+        return bytes2str(self._SendResult_impl_obj.getMsgId())
 
     @property
     def offset_msg_id(self):
-        return self._SendResult_impl_obj.getOffsetMsgId()
+        return bytes2str(self._SendResult_impl_obj.getOffsetMsgId())
 
     # MQMessageQueue getMessageQueue() const
 
@@ -247,10 +269,10 @@ cdef class PySendResult:
 
     @property
     def transaction_id(self):
-        return self._SendResult_impl_obj.getTransactionId()
+        return bytes2str(self._SendResult_impl_obj.getTransactionId())
 
     def __str__(self):
-        return self._SendResult_impl_obj.toString()
+        return bytes2str(self._SendResult_impl_obj.toString())
 
 cpdef enum PyConsumeStatus:
     CONSUME_SUCCESS = ConsumeStatus.CONSUME_SUCCESS
@@ -307,27 +329,27 @@ cdef class PyMQClient:
 
     @property
     def group_name(self):
-        return self._MQClient_impl_obj.getGroupName()
+        return bytes2str(self._MQClient_impl_obj.getGroupName())
 
     @group_name.setter
     def group_name(self, groupname):
-        self._MQClient_impl_obj.setGroupName(groupname)
+        self._MQClient_impl_obj.setGroupName(str2bytes(groupname))
 
     @property
     def namesrv_addr(self):
-        return self._MQClient_impl_obj.getNamesrvAddr()
+        return bytes2str(self._MQClient_impl_obj.getNamesrvAddr())
 
     @namesrv_addr.setter
     def namesrv_addr(self, addr):
-        self._MQClient_impl_obj.setNamesrvAddr(addr)
+        self._MQClient_impl_obj.setNamesrvAddr(str2bytes(addr))
 
     @property
     def instance_name(self):
-        return self._MQClient_impl_obj.getInstanceName()
+        return bytes2str(self._MQClient_impl_obj.getInstanceName())
 
     @instance_name.setter
     def instance_name(self, name):
-        self._MQClient_impl_obj.setInstanceName(name)
+        self._MQClient_impl_obj.setInstanceName(str2bytes(name))
 
     def start(self):
         self._MQClient_impl_obj.start()
@@ -347,7 +369,7 @@ cdef class PyDefaultMQProducer(PyMQClient):
         del self._impl_obj
 
     def __init__(self, groupname):
-        self._impl_obj = new DefaultMQProducer(groupname)
+        self._impl_obj = new DefaultMQProducer(str2bytes(groupname))
         PyMQClient.set_MQClient_impl_obj(self, self._impl_obj)
 
     #
@@ -370,7 +392,7 @@ cdef class PyDefaultMQPushConsumer(PyMQClient):
         del self._impl_obj
 
     def __init__(self, groupname):
-        self._impl_obj = new DefaultMQPushConsumer(groupname)
+        self._impl_obj = new DefaultMQPushConsumer(str2bytes(groupname))
         PyMQClient.set_MQClient_impl_obj(self, self._impl_obj)
 
         self.listener = None
@@ -391,4 +413,4 @@ cdef class PyDefaultMQPushConsumer(PyMQClient):
         self.listener = messageListener
 
     def subscribe(self, topic, sub_expression):
-        self._impl_obj.subscribe(topic, sub_expression)
+        self._impl_obj.subscribe(str2bytes(topic), str2bytes(sub_expression))
