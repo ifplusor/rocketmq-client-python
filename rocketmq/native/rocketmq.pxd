@@ -138,6 +138,9 @@ cdef extern from "MessageListenerWrapper.hpp" namespace "rocketmq" nogil:
     cdef cppclass MessageListenerConcurrentlyWrapper(MessageListenerWrapper, MessageListenerConcurrently):
         MessageListenerConcurrentlyWrapper(object, ConsumeMessage) except +
 
+    cdef cppclass MessageListenerOrderlyWrapper(MessageListenerWrapper, MessageListenerOrderly):
+        MessageListenerOrderlyWrapper(object, ConsumeMessage) except +
+
 
 cdef extern from "MQConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass MQPushConsumer:

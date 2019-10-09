@@ -25,7 +25,7 @@ from cython.operator cimport dereference as deref, preincrement as inc
 # import native SDK API
 from rocketmq cimport MQMessage, MQMessageExt
 from rocketmq cimport SendStatus, SendResult
-from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper
+from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper, MessageListenerOrderlyWrapper
 from rocketmq cimport MQClient, DefaultMQProducer, DefaultMQPushConsumer
 
 import sys
@@ -315,6 +315,12 @@ cdef class PyMessageListenerConcurrently(PyMessageListener):
 
     def __cinit__(self):
         self._impl_obj = new MessageListenerConcurrentlyWrapper(self, PyMessageListener.ConsumeMessage)
+
+cdef class PyMessageListenerOrderly(PyMessageListener):
+    """Wrapper of MessageListenerOrderly"""
+
+    def __cinit__(self):
+        self._impl_obj = new MessageListenerOrderlyWrapper(self, PyMessageListener.ConsumeMessage)
 
 cdef class PyMQClient:
     """Wrapper of MQClient"""

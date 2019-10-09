@@ -18,4 +18,5 @@
 from ..message import MessageExt
 from ..native import PyConsumeStatus as ConsumeStatus
 from ..native import PyMessageListenerConcurrently as MessageListenerConcurrently
+from ..native import PyMessageListenerOrderly as MessageListenerOrderly
 from ..native import PyDefaultMQPushConsumer as DefaultMQPushConsumer

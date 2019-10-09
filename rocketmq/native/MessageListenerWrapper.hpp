@@ -43,6 +43,12 @@ public:
       : MessageListenerWrapper(py_obj, py_callback) {}
 };
 
+class MessageListenerOrderlyWrapper : public MessageListenerWrapper, public MessageListenerOrderly {
+public:
+  MessageListenerOrderlyWrapper(PyObject* py_obj, ConsumeMessage py_callback)
+      : MessageListenerWrapper(py_obj, py_callback) {}
+};
+
 }  // namespace rocketmq
 
 #endif // __PY_MESSAGE_LISTENER_WRAPPER_HPP__
