@@ -23,16 +23,26 @@ from setuptools import setup, find_packages, Extension
 ROCKETMQ_INCLUDE_DIR = getenv("ROCKETMQ_INCLUDE_DIR", "/usr/local/include/rocketmq")
 ROCKETMQ_LIBRARY_DIR = getenv("ROCKETMQ_LIBRARY_DIR", "/usr/local/lib")
 
+EXT_INCLUDE_DIRS = getenv("EXT_INCLUDE_DIRS", "")
+EXT_LIBRARY_DIRS = getenv("EXT_LIBRARY_DIRS", "")
+
+ext_include_dirs = [ROCKETMQ_INCLUDE_DIR]
+if EXT_INCLUDE_DIRS:
+    ext_include_dirs.extend(EXT_INCLUDE_DIRS.split(","))
+
+ext_library_dirs = [ROCKETMQ_LIBRARY_DIR]
+if EXT_LIBRARY_DIRS:
+    ext_library_dirs.extend(EXT_LIBRARY_DIRS.split(","))
+
 native_kernel = Extension(
     name="rocketmq.native.PyRocketMQ",
     sources=[
-        "rocketmq/native/rocketmq.pxd",
         "rocketmq/native/PyRocketMQ.pyx",
     ],
     language="c++",
     extra_compile_args=["-std=c++11"],
-    include_dirs=[ROCKETMQ_INCLUDE_DIR],
-    library_dirs=[ROCKETMQ_LIBRARY_DIR],
+    include_dirs=ext_include_dirs,
+    library_dirs=ext_library_dirs,
     libraries=["rocketmq"]
 )
 
