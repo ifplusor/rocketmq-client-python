@@ -211,4 +211,7 @@ cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
         DefaultMQPushConsumer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
 
         int getConsumeThreadNum() const
-        void setConsumeThreadNum(int)
+        void setConsumeThreadNum(int threadNum)
+
+        int getConsumeMessageBatchMaxSize() const
+        void setConsumeMessageBatchMaxSize(int consumeMessageBatchMaxSize)

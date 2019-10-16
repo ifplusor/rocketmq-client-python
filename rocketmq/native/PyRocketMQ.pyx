@@ -444,6 +444,14 @@ cdef class PyDefaultMQPushConsumer(PyMQClient):
     def consume_thread_num(self, num):
         self._impl_obj.setConsumeThreadNum(num)
 
+    @property
+    def consume_message_batch_max_size(self):
+        return self._impl_obj.getConsumeMessageBatchMaxSize()
+
+    @consume_message_batch_max_size.setter
+    def consume_message_batch_max_size(self, size):
+        self._impl_obj.setConsumeMessageBatchMaxSize(size)
+
     #
     # MQPushConsumer
 
