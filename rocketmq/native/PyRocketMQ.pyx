@@ -388,7 +388,8 @@ cdef class PyMQClient:
         self._MQClient_impl_obj.start()
 
     def shutdown(self):
-        self._MQClient_impl_obj.shutdown()
+        with nogil:
+            self._MQClient_impl_obj.shutdown()
 
 cdef class PyDefaultMQProducer(PyMQClient):
     """Wrapper of DefaultMQProducer"""
