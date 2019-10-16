@@ -16,3 +16,4 @@
 # limitations under the License.
 #
 from .Message import *
+from .MessageQueue import *

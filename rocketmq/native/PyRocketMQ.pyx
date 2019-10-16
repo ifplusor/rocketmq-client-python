@@ -21,10 +21,10 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 
 # import dereference and increment operators
-from cython.operator cimport dereference as deref, preincrement as inc
+from cython.operator cimport dereference as deref, address as addrs, preincrement as inc
 
 # import native SDK API
-from rocketmq cimport MQMessage, MQMessageExt
+from rocketmq cimport MQMessage, MQMessageExt, MQMessageQueue
 from rocketmq cimport SendStatus, SendResult
 from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper, MessageListenerOrderlyWrapper
 from rocketmq cimport RPCHook, SessionCredentials, ClientRPCHook
@@ -228,6 +228,57 @@ cdef class PyMessageExt(PyMessage):
     def msg_id(self):
         return bytes2str(self._MQMessageExt_impl_obj.getMsgId())
 
+cdef class PyMessageQueue:
+    """Wrapper of MQMessageQueue"""
+
+    cdef MQMessageQueue *_MQMessageQueue_impl_obj
+
+    def __cinit__(self):
+        self._MQMessageQueue_impl_obj = NULL
+
+    def __dealloc__(self):
+        del self._MQMessageQueue_impl_obj
+
+    def __init__(self, topic=None, brokerName=None, queueId=None):
+        if topic is None or brokerName is None or queueId is None:
+            self._MQMessageQueue_impl_obj = new MQMessageQueue()
+        else:
+            self._MQMessageQueue_impl_obj = new MQMessageQueue(str2bytes(topic), str2bytes(brokerName),
+                                                               str2bytes(queueId))
+
+    @staticmethod
+    cdef PyMessageQueue from_message_queue(const MQMessageQueue*mq):
+        ret = PyMessageQueue()
+        ret._MQMessageQueue_impl_obj[0] = deref(mq)
+        return ret
+
+    @property
+    def topic(self):
+        return bytes2str(self._MQMessageQueue_impl_obj.getTopic())
+
+    @topic.setter
+    def topic(self, topic):
+        self._MQMessageQueue_impl_obj.setTopic(str2bytes(topic))
+
+    @property
+    def broker_name(self):
+        return bytes2str(self._MQMessageQueue_impl_obj.getBrokerName())
+
+    @broker_name.setter
+    def broker_name(self, broker_name):
+        self._MQMessageQueue_impl_obj.setBrokerName(str2bytes(broker_name))
+
+    @property
+    def queue_id(self):
+        return self._MQMessageQueue_impl_obj.getQueueId()
+
+    @queue_id.setter
+    def queue_id(self, queue_id):
+        self._MQMessageQueue_impl_obj.setQueueId(queue_id)
+
+    def __str__(self):
+        return bytes2str(self._MQMessageQueue_impl_obj.toString())
+
 cpdef enum PySendStatus:
     SEND_OK = SendStatus.SEND_OK
     SEND_FLUSH_DISK_TIMEOUT = SendStatus.SEND_FLUSH_DISK_TIMEOUT
@@ -248,7 +299,7 @@ cdef class PySendResult:
     @staticmethod
     cdef PySendResult from_result(SendResult*result):
         ret = PySendResult()
-        ret._SendResult_impl_obj = new SendResult(result[0])
+        ret._SendResult_impl_obj = new SendResult(deref(result))
         return ret
 
     @property
@@ -263,7 +314,9 @@ cdef class PySendResult:
     def offset_msg_id(self):
         return bytes2str(self._SendResult_impl_obj.getOffsetMsgId())
 
-    # MQMessageQueue getMessageQueue() const
+    @property
+    def message_queue(self):
+        return PyMessageQueue.from_message_queue(addrs(self._SendResult_impl_obj.getMessageQueue()))
 
     @property
     def queue_offset(self):
@@ -275,6 +328,10 @@ cdef class PySendResult:
 
     def __str__(self):
         return bytes2str(self._SendResult_impl_obj.toString())
+
+cdef class PySendCallback:
+    """Wrapper of SendCallback"""
+    pass
 
 cpdef enum PyConsumeStatus:
     CONSUME_SUCCESS = ConsumeStatus.CONSUME_SUCCESS
@@ -300,8 +357,8 @@ cdef class PyMessageListener:
         # callback by native SDK in another thread need declare GIL.
 
         msgs2 = list()
-        cdef vector[MQMessageExt*].iterator it = (<vector[MQMessageExt*]&> msgs).begin()
-        while it != (<vector[MQMessageExt*]&> msgs).end():
+        cdef vector[MQMessageExt*].iterator it = (<vector[MQMessageExt*] &> msgs).begin()
+        while it != (<vector[MQMessageExt*] &> msgs).end():
             msg = PyMessageExt.from_message_ext(deref(it))
             msgs2.append(msg)
             inc(it)
@@ -347,7 +404,7 @@ cdef class PyClientRPCHook(PyRPCHook):
     """Wrapper of ClientRPCHook"""
 
     def __init__(self, PySessionCredentials sessionCredentials):
-        self._impl_obj.reset(new ClientRPCHook(sessionCredentials._impl_obj[0]))
+        self._impl_obj.reset(new ClientRPCHook(deref(sessionCredentials._impl_obj)))
 
 cdef class PyMQClient:
     """Wrapper of MQClient"""
@@ -412,9 +469,25 @@ cdef class PyDefaultMQProducer(PyMQClient):
     #
     # MQProducer
 
-    def send(self, PyMessage msg):
-        cdef SendResult ret = self._impl_obj.send(msg._MQMessage_impl_obj)
+    def send(self, PyMessage msg, PyMessageQueue mq=None, long timeout=-1):
+        cdef SendResult ret
+        if mq is None:
+            if timeout > 0:
+                ret = self._impl_obj.send(msg._MQMessage_impl_obj, timeout)
+            else:
+                ret = self._impl_obj.send(msg._MQMessage_impl_obj)
+        else:
+            if timeout > 0:
+                ret = self._impl_obj.send(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj), timeout)
+            else:
+                ret = self._impl_obj.send(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj))
         return PySendResult.from_result(&ret)
+
+    def sendOneway(self, PyMessage msg, PyMessageQueue mq=None):
+        if mq is None:
+            self._impl_obj.sendOneway(msg._MQMessage_impl_obj)
+        else:
+            self._impl_obj.sendOneway(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj))
 
 cdef class PyDefaultMQPushConsumer(PyMQClient):
     """Wrapper of DefaultMQPushConsumer"""

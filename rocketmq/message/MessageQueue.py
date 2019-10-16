@@ -15,7 +15,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ..message import Message, MessageQueue
-from ..native import PySendStatus as SendStatus
-from ..native import PySendResult as SendResult
-from ..native import PyDefaultMQProducer as DefaultMQProducer
+from ..native import PyMessageQueue as MessageQueue

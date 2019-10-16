@@ -1,6 +1,7 @@
 .idea/
 cmake-build-*/
 build/
+dist/
 
 *.pyc
 *.so

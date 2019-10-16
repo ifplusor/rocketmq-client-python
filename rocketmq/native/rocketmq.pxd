@@ -21,7 +21,7 @@ from libcpp.vector cimport vector
 from libcpp.memory cimport shared_ptr
 
 
-cdef extern from "MQMessage.h" namespace "rocketmq":
+cdef extern from "MQMessage.h" namespace "rocketmq" nogil:
     cdef cppclass MQMessage:
         MQMessage() except +
 
@@ -57,7 +57,7 @@ cdef extern from "MQMessage.h" namespace "rocketmq":
         string toString() const
 
 
-cdef extern from "MQMessageExt.h" namespace "rocketmq":
+cdef extern from "MQMessageExt.h" namespace "rocketmq" nogil:
     cdef cppclass MQMessageExt(MQMessage):
         int32_t getStoreSize() const
         int32_t getBodyCRC() const
@@ -76,9 +76,14 @@ cdef extern from "MQMessageExt.h" namespace "rocketmq":
         string toString() const
 
 
-cdef extern from "MQMessageQueue.h" namespace "rocketmq":
+cdef extern from "MQMessageQueue.h" namespace "rocketmq" nogil:
     cdef cppclass MQMessageQueue:
-        string getTopic() const
+        MQMessageQueue();
+        MQMessageQueue(const string& topic, const string& brokerName, int queueId)
+
+        MQMessageQueue& operator=(const MQMessageQueue& other);
+
+        const string& getTopic() const
         void setTopic(const string& topic)
 
         const string& getBrokerName() const
@@ -90,7 +95,7 @@ cdef extern from "MQMessageQueue.h" namespace "rocketmq":
         string toString() const
 
 
-cdef extern from "SendResult.h" namespace "rocketmq":
+cdef extern from "SendResult.h" namespace "rocketmq" nogil:
     cdef enum SendStatus:
         SEND_OK, SEND_FLUSH_DISK_TIMEOUT, SEND_FLUSH_SLAVE_TIMEOUT, SEND_SLAVE_NOT_AVAILABLE
 
@@ -101,7 +106,7 @@ cdef extern from "SendResult.h" namespace "rocketmq":
         SendStatus getSendStatus() const
         const string& getMsgId() const
         const string& getOffsetMsgId() const
-        MQMessageQueue getMessageQueue() const
+        const MQMessageQueue& getMessageQueue() const
         int64_t getQueueOffset() const
         const string& getTransactionId() const
 
@@ -110,10 +115,20 @@ cdef extern from "SendResult.h" namespace "rocketmq":
 
 cdef extern from "MQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass MQProducer:
-        SendResult send(MQMessage*msg) except +
+        # Trick Cython for overloads, see: https://stackoverflow.com/a/42627030/6298032
+
+        SendResult send(...) except +
+        SendResult sync_send "send"(MQMessage*msg) except +
+        SendResult sync_send_with_timeout "send"(MQMessage*msg) except +
+        SendResult sync_send_to_mq "send"(MQMessage*msg, const MQMessageQueue& mq, long timeout) except +
+        SendResult sync_send_to_mq_with_timeout "send"(MQMessage*msg, const MQMessageQueue& mq, long timeout) except +
+
+        void sendOneway(...) except +
+        void oneway_send "sendOneway"(MQMessage*msg) except +
+        void oneway_send_to_mq "sendOneway"(MQMessage*msg, const MQMessageQueue& mq) except +
 
 
-cdef extern from "MQMessageListener.h" namespace "rocketmq":
+cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
     cdef enum ConsumeStatus:
         CONSUME_SUCCESS, RECONSUME_LATER
 
@@ -148,12 +163,12 @@ cdef extern from "MQConsumer.h" namespace "rocketmq" nogil:
         void subscribe(const string& topic, const string& subExpression)
 
 
-cdef extern from "RPCHook.h" namespace "rocketmq":
+cdef extern from "RPCHook.h" namespace "rocketmq" nogil:
     cdef cppclass RPCHook:
         pass
 
 
-cdef extern from "SessionCredentials.h" namespace "rocketmq":
+cdef extern from "SessionCredentials.h" namespace "rocketmq" nogil:
     cdef cppclass SessionCredentials:
         SessionCredentials() except +
         SessionCredentials(const string& accessKey, const string& secretKey, const string& authChannel) except +
@@ -176,7 +191,7 @@ cdef extern from "SessionCredentials.h" namespace "rocketmq":
         bint isValid() const
 
 
-cdef extern from "ClientRPCHook.h" namespace "rocketmq":
+cdef extern from "ClientRPCHook.h" namespace "rocketmq" nogil:
     cdef cppclass ClientRPCHook(RPCHook):
         ClientRPCHook(const SessionCredentials& sessionCredentials) except +
 
