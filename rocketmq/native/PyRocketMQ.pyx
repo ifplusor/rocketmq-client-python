@@ -300,8 +300,8 @@ cdef class PyMessageListener:
         # callback by native SDK in another thread need declare GIL.
 
         msgs2 = list()
-        cdef vector[MQMessageExt*].iterator it = (<vector[MQMessageExt*]> msgs).begin()
-        while it != (<vector[MQMessageExt*]> msgs).end():
+        cdef vector[MQMessageExt*].iterator it = (<vector[MQMessageExt*]&> msgs).begin()
+        while it != (<vector[MQMessageExt*]&> msgs).end():
             msg = PyMessageExt.from_message_ext(deref(it))
             msgs2.append(msg)
             inc(it)

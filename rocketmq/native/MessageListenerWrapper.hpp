@@ -26,7 +26,10 @@ typedef ConsumeStatus (*ConsumeMessage)(PyObject*, const std::vector<MQMessageEx
 
 class MessageListenerWrapper : virtual public MQMessageListener {
 public:
-  MessageListenerWrapper(PyObject* py_obj, ConsumeMessage py_callback) : py_obj_(py_obj), py_callback_(py_callback) {}
+  MessageListenerWrapper(PyObject* py_obj, ConsumeMessage py_callback) : py_obj_(py_obj), py_callback_(py_callback) {
+    // ensure GIL is initialized.
+    PyEval_InitThreads();
+  }
 
   ConsumeStatus consumeMessage(const std::vector<MQMessageExtPtr>& msgs) override {
     return py_callback_(py_obj_, msgs);
