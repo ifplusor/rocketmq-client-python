@@ -219,6 +219,9 @@ cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
         DefaultMQProducer(const string& groupname) except +
         DefaultMQProducer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
 
+        bint isSendLatencyFaultEnable() const
+        void setSendLatencyFaultEnable(bint sendLatencyFaultEnable)
+
 
 cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQPushConsumer(MQPushConsumer, MQClient):

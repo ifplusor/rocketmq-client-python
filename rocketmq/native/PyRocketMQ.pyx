@@ -466,6 +466,14 @@ cdef class PyDefaultMQProducer(PyMQClient):
             self._impl_obj = new DefaultMQProducer(str2bytes(groupname), rpcHook._impl_obj)
         PyMQClient.set_MQClient_impl_obj(self, self._impl_obj)
 
+    @property
+    def send_latency_fault_enable(self):
+        return self._impl_obj.isSendLatencyFaultEnable()
+
+    @send_latency_fault_enable.setter
+    def send_latency_fault_enable(self, enable):
+        self._impl_obj.setSendLatencyFaultEnable(enable)
+
     #
     # MQProducer
 
