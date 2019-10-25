@@ -216,20 +216,22 @@ cdef extern from "MQClient.h" namespace "rocketmq" nogil:
 
 cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQProducer(MQProducer, MQClient):
-        DefaultMQProducer(const string& groupname) except +
-        DefaultMQProducer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
-
         bint isSendLatencyFaultEnable() const
         void setSendLatencyFaultEnable(bint sendLatencyFaultEnable)
 
 
 cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQPushConsumer(MQPushConsumer, MQClient):
-        DefaultMQPushConsumer(const string& groupname) except +
-        DefaultMQPushConsumer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +
-
         int getConsumeThreadNum() const
         void setConsumeThreadNum(int threadNum)
 
         int getConsumeMessageBatchMaxSize() const
         void setConsumeMessageBatchMaxSize(int consumeMessageBatchMaxSize)
+
+
+cdef extern from "MQClientFactory.hpp" namespace "rocketmq" nogil:
+    shared_ptr[DefaultMQProducer] CreateDefaultMQProducer(const string& groupname,
+                                                          shared_ptr[RPCHook] rpcHook) except +
+
+    shared_ptr[DefaultMQPushConsumer] CreateDefaultMQPushConsumer(const string& groupname,
+                                                                  shared_ptr[RPCHook] rpcHook) except +
