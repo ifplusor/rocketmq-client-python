@@ -131,9 +131,8 @@ cdef class PyMessage:
         return self._MQMessage_impl_obj.isWaitStoreMsgOK()
 
     @wait_store_msg_ok.setter
-    def wait_store_msg_ok(self, bint wait_store_msg_ok):
-        # self._impl_obj.setWaitStoreMsgOk(wait_store_msg_ok)
-        pass
+    def wait_store_msg_ok(self, wait_store_msg_ok):
+        self._MQMessage_impl_obj.setWaitStoreMsgOK(wait_store_msg_ok)
 
     @property
     def flag(self):
