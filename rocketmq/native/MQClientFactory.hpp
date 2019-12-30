@@ -24,12 +24,14 @@ namespace rocketmq {
 
 inline std::shared_ptr<DefaultMQProducer>
 CreateDefaultMQProducer(const std::string& groupname = "", RPCHookPtr rpcHook = nullptr) {
-  return DefaultMQProducer::create(groupname, rpcHook);
+  // return DefaultMQProducer::create(groupname, rpcHook);
+  return std::make_shared<DefaultMQProducer>(groupname, rpcHook);
 }
 
 inline std::shared_ptr<DefaultMQPushConsumer>
 CreateDefaultMQPushConsumer(const std::string& groupname = "", RPCHookPtr rpcHook = nullptr) {
-  return DefaultMQPushConsumer::create(groupname, rpcHook);
+  // return DefaultMQPushConsumer::create(groupname, rpcHook);
+  return std::make_shared<DefaultMQPushConsumer>(groupname, rpcHook);
 }
 
 }  // namespace rocketmq

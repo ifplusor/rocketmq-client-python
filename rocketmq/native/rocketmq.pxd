@@ -115,6 +115,9 @@ cdef extern from "SendResult.h" namespace "rocketmq" nogil:
 
 cdef extern from "MQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass MQProducer:
+        void start() except +
+        void shutdown() except +
+
         # Trick Cython for overloads, see: https://stackoverflow.com/a/42627030/6298032
 
         SendResult send(...) except +
@@ -159,6 +162,9 @@ cdef extern from "MessageListenerWrapper.hpp" namespace "rocketmq" nogil:
 
 cdef extern from "MQConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass MQPushConsumer:
+        void start() except +
+        void shutdown() except +
+
         void registerMessageListener(MQMessageListener*messageListener)
         void subscribe(const string& topic, const string& subExpression)
 
@@ -208,25 +214,25 @@ cdef extern from "MQClientConfig.h" namespace "rocketmq" nogil:
         void setInstanceName(const string& instanceName)
 
 
-cdef extern from "MQClient.h" namespace "rocketmq" nogil:
-    cdef cppclass MQClient(MQClientConfig):
-        void start() except +
-        void shutdown() except +
-
-
 cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
-    cdef cppclass DefaultMQProducer(MQProducer, MQClient):
+    cdef cppclass DefaultMQProducerConfig(MQClientConfig):
         bint isSendLatencyFaultEnable() const
         void setSendLatencyFaultEnable(bint sendLatencyFaultEnable)
 
+    cdef cppclass DefaultMQProducer(MQProducer, DefaultMQProducerConfig):
+        pass
+
 
 cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
-    cdef cppclass DefaultMQPushConsumer(MQPushConsumer, MQClient):
+    cdef cppclass DefaultMQPushConsumerConfig(MQClientConfig):
         int getConsumeThreadNum() const
         void setConsumeThreadNum(int threadNum)
 
         int getConsumeMessageBatchMaxSize() const
         void setConsumeMessageBatchMaxSize(int consumeMessageBatchMaxSize)
+
+    cdef cppclass DefaultMQPushConsumer(MQPushConsumer, DefaultMQPushConsumerConfig):
+        pass
 
 
 cdef extern from "MQClientFactory.hpp" namespace "rocketmq" nogil:

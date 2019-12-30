@@ -28,7 +28,7 @@ from rocketmq cimport MQMessage, MQMessageExt, MQMessageQueue
 from rocketmq cimport SendStatus, SendResult
 from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper, MessageListenerOrderlyWrapper
 from rocketmq cimport RPCHook, SessionCredentials, ClientRPCHook
-from rocketmq cimport MQClient, DefaultMQProducer, DefaultMQPushConsumer
+from rocketmq cimport MQClientConfig, DefaultMQProducer, DefaultMQPushConsumer
 from rocketmq cimport CreateDefaultMQProducer, CreateDefaultMQPushConsumer
 
 import sys
@@ -406,49 +406,43 @@ cdef class PyClientRPCHook(PyRPCHook):
     def __init__(self, PySessionCredentials sessionCredentials):
         self._impl_obj.reset(new ClientRPCHook(deref(sessionCredentials._impl_obj)))
 
-cdef class PyMQClient:
-    """Wrapper of MQClient"""
+cdef class PyMQClientConfig:
+    """Wrapper of MQClientConfig"""
 
-    cdef MQClient*_MQClient_impl_obj
+    cdef MQClientConfig*_MQClientConfig_impl_obj
 
     def __cinit__(self):
-        self._MQClient_impl_obj = NULL
+        self._MQClientConfig_impl_obj = NULL
 
-    cdef void set_MQClient_impl_obj(self, MQClient *obj):
-        self._MQClient_impl_obj = obj
+    cdef void set_MQClientConfig_impl_obj(self, MQClientConfig *obj):
+        self._MQClientConfig_impl_obj = obj
 
     @property
     def group_name(self):
-        return bytes2str(self._MQClient_impl_obj.getGroupName())
+        return bytes2str(self._MQClientConfig_impl_obj.getGroupName())
 
     @group_name.setter
     def group_name(self, groupname):
-        self._MQClient_impl_obj.setGroupName(str2bytes(groupname))
+        self._MQClientConfig_impl_obj.setGroupName(str2bytes(groupname))
 
     @property
     def namesrv_addr(self):
-        return bytes2str(self._MQClient_impl_obj.getNamesrvAddr())
+        return bytes2str(self._MQClientConfig_impl_obj.getNamesrvAddr())
 
     @namesrv_addr.setter
     def namesrv_addr(self, addr):
-        self._MQClient_impl_obj.setNamesrvAddr(str2bytes(addr))
+        self._MQClientConfig_impl_obj.setNamesrvAddr(str2bytes(addr))
 
     @property
     def instance_name(self):
-        return bytes2str(self._MQClient_impl_obj.getInstanceName())
+        return bytes2str(self._MQClientConfig_impl_obj.getInstanceName())
 
     @instance_name.setter
     def instance_name(self, name):
-        self._MQClient_impl_obj.setInstanceName(str2bytes(name))
+        self._MQClientConfig_impl_obj.setInstanceName(str2bytes(name))
 
-    def start(self):
-        self._MQClient_impl_obj.start()
 
-    def shutdown(self):
-        with nogil:
-            self._MQClient_impl_obj.shutdown()
-
-cdef class PyDefaultMQProducer(PyMQClient):
+cdef class PyDefaultMQProducer(PyMQClientConfig):
     """Wrapper of DefaultMQProducer"""
 
     cdef shared_ptr[DefaultMQProducer] _impl_obj
@@ -458,7 +452,7 @@ cdef class PyDefaultMQProducer(PyMQClient):
             self._impl_obj = CreateDefaultMQProducer(str2bytes(groupname), shared_ptr[RPCHook]())
         else:
             self._impl_obj = CreateDefaultMQProducer(str2bytes(groupname), rpcHook._impl_obj)
-        PyMQClient.set_MQClient_impl_obj(self, self._impl_obj.get())
+        PyMQClientConfig.set_MQClientConfig_impl_obj(self, self._impl_obj.get())
 
     @property
     def send_latency_fault_enable(self):
@@ -470,6 +464,13 @@ cdef class PyDefaultMQProducer(PyMQClient):
 
     #
     # MQProducer
+
+    def start(self):
+        deref(self._impl_obj).start()
+
+    def shutdown(self):
+        with nogil:
+            deref(self._impl_obj).shutdown()
 
     def send(self, PyMessage msg, PyMessageQueue mq=None, long timeout=-1):
         cdef SendResult ret
@@ -491,7 +492,7 @@ cdef class PyDefaultMQProducer(PyMQClient):
         else:
             deref(self._impl_obj).sendOneway(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj))
 
-cdef class PyDefaultMQPushConsumer(PyMQClient):
+cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
     """Wrapper of DefaultMQPushConsumer"""
 
     cdef shared_ptr[DefaultMQPushConsumer] _impl_obj
@@ -502,7 +503,7 @@ cdef class PyDefaultMQPushConsumer(PyMQClient):
             self._impl_obj = CreateDefaultMQPushConsumer(str2bytes(groupname), shared_ptr[RPCHook]())
         else:
             self._impl_obj = CreateDefaultMQPushConsumer(str2bytes(groupname), rpcHook._impl_obj)
-        PyMQClient.set_MQClient_impl_obj(self, self._impl_obj.get())
+        PyMQClientConfig.set_MQClientConfig_impl_obj(self, self._impl_obj.get())
 
         self.listener = None
 
@@ -524,6 +525,13 @@ cdef class PyDefaultMQPushConsumer(PyMQClient):
 
     #
     # MQPushConsumer
+
+    def start(self):
+        deref(self._impl_obj).start()
+
+    def shutdown(self):
+        with nogil:
+            deref(self._impl_obj).shutdown()
 
     cpdef registerMessageListener(self, PyMessageListener messageListener):
         deref(self._impl_obj).registerMessageListener(messageListener._impl_obj)
