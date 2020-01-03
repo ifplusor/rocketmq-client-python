@@ -43,7 +43,7 @@ native_kernel = Extension(
     extra_compile_args=["-std=c++11"],
     include_dirs=ext_include_dirs,
     library_dirs=ext_library_dirs,
-    libraries=["rocketmq"]
+    libraries=["rocketmq", "z"]
 )
 
 setup(
