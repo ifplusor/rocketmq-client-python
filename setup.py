@@ -40,10 +40,10 @@ native_kernel = Extension(
         "rocketmq/native/PyRocketMQ.pyx",
     ],
     language="c++",
-    extra_compile_args=["-std=c++11"],
+    extra_compile_args=["-std=c++11", "-fPIC"],
     include_dirs=ext_include_dirs,
     library_dirs=ext_library_dirs,
-    libraries=["rocketmq", "z"]
+    libraries=["rocketmq"]
 )
 
 setup(
