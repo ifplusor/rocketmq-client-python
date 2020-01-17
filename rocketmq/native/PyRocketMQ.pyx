@@ -1,4 +1,5 @@
 # distutils: language = c++
+# cython: embedsignature=True
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -34,6 +35,7 @@ import sys
 
 is_py3 = bool(sys.version_info[0] >= 3)
 
+
 def str2bytes(s):
     if is_py3:
         if type(s) is str:
@@ -46,11 +48,13 @@ def str2bytes(s):
         else:
             return s
 
+
 def bytes2str(b):
     if is_py3:
         return b.decode("utf-8")
     else:
         return b
+
 
 cdef class PyMessage:
     """Wrapper of MQMessage"""
@@ -152,6 +156,7 @@ cdef class PyMessage:
     def __str__(self):
         return bytes2str(self._MQMessage_impl_obj.toString())
 
+
 cdef class PyMessageExt(PyMessage):
     """Wrapper of MQMessageExt"""
 
@@ -227,6 +232,7 @@ cdef class PyMessageExt(PyMessage):
     def msg_id(self):
         return bytes2str(self._MQMessageExt_impl_obj.getMsgId())
 
+
 cdef class PyMessageQueue:
     """Wrapper of MQMessageQueue"""
 
@@ -278,11 +284,13 @@ cdef class PyMessageQueue:
     def __str__(self):
         return bytes2str(self._MQMessageQueue_impl_obj.toString())
 
+
 cpdef enum PySendStatus:
     SEND_OK = SendStatus.SEND_OK
     SEND_FLUSH_DISK_TIMEOUT = SendStatus.SEND_FLUSH_DISK_TIMEOUT
     SEND_FLUSH_SLAVE_TIMEOUT = SendStatus.SEND_FLUSH_SLAVE_TIMEOUT
     SEND_SLAVE_NOT_AVAILABLE = SendStatus.SEND_SLAVE_NOT_AVAILABLE
+
 
 cdef class PySendResult:
     """Wrapper of SendResult"""
@@ -328,13 +336,16 @@ cdef class PySendResult:
     def __str__(self):
         return bytes2str(self._SendResult_impl_obj.toString())
 
+
 cdef class PySendCallback:
     """Wrapper of SendCallback"""
     pass
 
+
 cpdef enum PyConsumeStatus:
     CONSUME_SUCCESS = ConsumeStatus.CONSUME_SUCCESS
     RECONSUME_LATER = ConsumeStatus.RECONSUME_LATER
+
 
 cdef class PyMessageListener:
     """Wrapper of MQMessageListener"""
@@ -368,11 +379,13 @@ cdef class PyMessageListener:
             return ConsumeStatus.CONSUME_SUCCESS
         return status
 
+
 cdef class PyMessageListenerConcurrently(PyMessageListener):
     """Wrapper of MessageListenerConcurrently"""
 
     def __cinit__(self):
         self._impl_obj = new MessageListenerConcurrentlyWrapper(self, PyMessageListener.ConsumeMessage)
+
 
 cdef class PyMessageListenerOrderly(PyMessageListener):
     """Wrapper of MessageListenerOrderly"""
@@ -380,10 +393,12 @@ cdef class PyMessageListenerOrderly(PyMessageListener):
     def __cinit__(self):
         self._impl_obj = new MessageListenerOrderlyWrapper(self, PyMessageListener.ConsumeMessage)
 
+
 cdef class PyRPCHook:
     """Wrapper of RPCHook"""
 
     cdef shared_ptr[RPCHook] _impl_obj
+
 
 cdef class PySessionCredentials:
     """Wrapper of SessionCredentials"""
@@ -399,11 +414,13 @@ cdef class PySessionCredentials:
     def __init__(self, accessKey, secretKey, authChannel):
         self._impl_obj = new SessionCredentials(str2bytes(accessKey), str2bytes(secretKey), str2bytes(authChannel))
 
+
 cdef class PyClientRPCHook(PyRPCHook):
     """Wrapper of ClientRPCHook"""
 
     def __init__(self, PySessionCredentials sessionCredentials):
         self._impl_obj.reset(new ClientRPCHook(deref(sessionCredentials._impl_obj)))
+
 
 cdef class PyMQClientConfig:
     """Wrapper of MQClientConfig"""
@@ -496,6 +513,7 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
             deref(self._impl_obj).sendOneway(msg._MQMessage_impl_obj)
         else:
             deref(self._impl_obj).sendOneway(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj))
+
 
 cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
     """Wrapper of DefaultMQPushConsumer"""
