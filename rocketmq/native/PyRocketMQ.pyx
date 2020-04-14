@@ -552,6 +552,14 @@ cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
     def consume_message_batch_max_size(self, size):
         deref(self._impl_obj).setConsumeMessageBatchMaxSize(size)
 
+    @property
+    def max_cache_msg_size_pre_queue(self):
+        return deref(self._impl_obj).getMaxCacheMsgSizePerQueue()
+
+    @max_cache_msg_size_pre_queue.setter
+    def max_cache_msg_size_pre_queue(self, size):
+        deref(self._impl_obj).setMaxCacheMsgSizePerQueue(size)
+
     #
     # MQPushConsumer
 
