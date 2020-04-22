@@ -17,41 +17,41 @@
 #ifndef __PY_MESSAGE_LISTENER_WRAPPER_HPP__
 #define __PY_MESSAGE_LISTENER_WRAPPER_HPP__
 
-#include <Python.h>
 #include <MQMessageListener.h>
+#include <Python.h>
 
 namespace rocketmq {
 
-typedef ConsumeStatus (*ConsumeMessage)(PyObject*, const std::vector<MQMessageExtPtr>&);
+typedef ConsumeStatus (*ConsumeMessage)(PyObject*, const std::vector<MQMessageExtPtr2>&);
 
 class MessageListenerWrapper : virtual public MQMessageListener {
-public:
+ public:
   MessageListenerWrapper(PyObject* py_obj, ConsumeMessage py_callback) : py_obj_(py_obj), py_callback_(py_callback) {
     // ensure GIL is initialized.
     PyEval_InitThreads();
   }
 
-  ConsumeStatus consumeMessage(const std::vector<MQMessageExtPtr>& msgs) override {
+  ConsumeStatus consumeMessage(const std::vector<MQMessageExtPtr2>& msgs) override {
     return py_callback_(py_obj_, msgs);
   }
 
-private:
+ private:
   PyObject* py_obj_;
   ConsumeMessage py_callback_;
 };
 
 class MessageListenerConcurrentlyWrapper : public MessageListenerWrapper, public MessageListenerConcurrently {
-public:
+ public:
   MessageListenerConcurrentlyWrapper(PyObject* py_obj, ConsumeMessage py_callback)
       : MessageListenerWrapper(py_obj, py_callback) {}
 };
 
 class MessageListenerOrderlyWrapper : public MessageListenerWrapper, public MessageListenerOrderly {
-public:
+ public:
   MessageListenerOrderlyWrapper(PyObject* py_obj, ConsumeMessage py_callback)
       : MessageListenerWrapper(py_obj, py_callback) {}
 };
 
 }  // namespace rocketmq
 
-#endif // __PY_MESSAGE_LISTENER_WRAPPER_HPP__
+#endif  // __PY_MESSAGE_LISTENER_WRAPPER_HPP__

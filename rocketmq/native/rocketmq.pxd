@@ -95,6 +95,12 @@ cdef extern from "MQMessageQueue.h" namespace "rocketmq" nogil:
         string toString() const
 
 
+cdef extern from "MessageUtil.h" namespace "rocketmq" nogil:
+    cdef cppclass MessageUtil:
+        @staticmethod
+        MQMessage* createReplyMessage(const MQMessage* requestMessage, const string& body) except +
+
+
 cdef extern from "SendResult.h" namespace "rocketmq" nogil:
     cdef enum SendStatus:
         SEND_OK, SEND_FLUSH_DISK_TIMEOUT, SEND_FLUSH_SLAVE_TIMEOUT, SEND_SLAVE_NOT_AVAILABLE
@@ -121,14 +127,16 @@ cdef extern from "MQProducer.h" namespace "rocketmq" nogil:
         # Trick Cython for overloads, see: https://stackoverflow.com/a/42627030/6298032
 
         SendResult send(...) except +
-        SendResult sync_send "send"(MQMessage*msg) except +
-        SendResult sync_send_with_timeout "send"(MQMessage*msg) except +
-        SendResult sync_send_to_mq "send"(MQMessage*msg, const MQMessageQueue& mq, long timeout) except +
-        SendResult sync_send_to_mq_with_timeout "send"(MQMessage*msg, const MQMessageQueue& mq, long timeout) except +
+        SendResult sync_send "send"(MQMessage* msg) except +
+        SendResult sync_send_with_timeout "send"(MQMessage* msg, long timeout) except +
+        SendResult sync_send_to_mq "send"(MQMessage* msg, const MQMessageQueue& mq, long timeout) except +
+        SendResult sync_send_to_mq_with_timeout "send"(MQMessage* msg, const MQMessageQueue& mq, long timeout) except +
 
         void sendOneway(...) except +
-        void oneway_send "sendOneway"(MQMessage*msg) except +
-        void oneway_send_to_mq "sendOneway"(MQMessage*msg, const MQMessageQueue& mq) except +
+        void oneway_send "sendOneway"(MQMessage* msg) except +
+        void oneway_send_to_mq "sendOneway"(MQMessage* msg, const MQMessageQueue& mq) except +
+
+        MQMessage* request(MQMessage* msg, long timeout) except +
 
 
 cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
@@ -137,7 +145,6 @@ cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
 
     cdef cppclass MQMessageListener:
         ConsumeStatus consumeMessage(const vector[shared_ptr[MQMessageExt]]& msgs)
-        ConsumeStatus consumeMessage(const vector[MQMessageExt*]& msgs)
 
     cdef cppclass MessageListenerConcurrently(MQMessageListener):
         pass
@@ -146,7 +153,7 @@ cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
         pass
 
 
-ctypedef ConsumeStatus (*ConsumeMessage)(object, const vector[MQMessageExt*] &)
+ctypedef ConsumeStatus (*ConsumeMessage)(object, const vector[shared_ptr[MQMessageExt]] &)
 
 
 cdef extern from "MessageListenerWrapper.hpp" namespace "rocketmq" nogil:
@@ -165,7 +172,7 @@ cdef extern from "MQConsumer.h" namespace "rocketmq" nogil:
         void start() except +
         void shutdown() except +
 
-        void registerMessageListener(MQMessageListener*messageListener)
+        void registerMessageListener(MQMessageListener* messageListener)
         void subscribe(const string& topic, const string& subExpression)
 
 

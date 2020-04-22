@@ -25,7 +25,7 @@ from libcpp.vector cimport vector
 from cython.operator cimport dereference as deref, address as addrs, preincrement as inc
 
 # import native SDK API
-from rocketmq cimport MQMessage, MQMessageExt, MQMessageQueue
+from rocketmq cimport MQMessage, MQMessageExt, MQMessageQueue, MessageUtil
 from rocketmq cimport SendStatus, SendResult
 from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper, MessageListenerOrderlyWrapper
 from rocketmq cimport RPCHook, SessionCredentials, ClientRPCHook
@@ -157,80 +157,97 @@ cdef class PyMessage:
         return bytes2str(self._MQMessage_impl_obj.toString())
 
 
-cdef class PyMessageExt(PyMessage):
-    """Wrapper of MQMessageExt"""
-
-    cdef MQMessageExt* _MQMessageExt_impl_obj
+cdef class PyMessageGuard(PyMessage):
 
     def __cinit__(self):
-        self._MQMessageExt_impl_obj = NULL
+        pass
 
     def __dealloc__(self):
-        if type(self) is PyMessageExt:
-            # del self._MQMessageExt_impl_obj
-            pass
+        if type(self) is PyMessageGuard:
+            del self._MQMessage_impl_obj
 
-    cdef void set_MQMessageExt_impl_obj(self, MQMessageExt* obj):
-        self._MQMessageExt_impl_obj = obj
+    cdef void set_MQMessage_impl_obj(self, MQMessage* obj):
         PyMessage.set_MQMessage_impl_obj(self, obj)
 
     @staticmethod
-    cdef PyMessageExt from_message_ext(MQMessageExt* message):
+    cdef PyMessage from_message(MQMessage* obj):
+        ret = PyMessageGuard()
+        ret.set_MQMessage_impl_obj(obj)
+        return ret
+
+
+cdef class PyMessageExt(PyMessage):
+    """Wrapper of MQMessageExt"""
+
+    cdef shared_ptr[MQMessageExt] _MQMessageExt_impl_obj
+
+    def __cinit__(self):
+        pass
+
+    def __dealloc__(self):
+        pass
+
+    cdef void set_MQMessageExt_impl_obj(self, shared_ptr[MQMessageExt] obj):
+        self._MQMessageExt_impl_obj = obj
+        PyMessage.set_MQMessage_impl_obj(self, obj.get())
+
+    @staticmethod
+    cdef PyMessageExt from_message_ext(shared_ptr[MQMessageExt] message):
         ret = PyMessageExt()
         ret.set_MQMessageExt_impl_obj(message)
         return ret
 
     @property
     def store_size(self):
-        return self._MQMessageExt_impl_obj.getStoreSize()
+        return deref(self._MQMessageExt_impl_obj).getStoreSize()
 
     @property
     def body_crc(self):
-        return self._MQMessageExt_impl_obj.getBodyCRC()
+        return deref(self._MQMessageExt_impl_obj).getBodyCRC()
 
     @property
     def queue_id(self):
-        return self._MQMessageExt_impl_obj.getQueueId()
+        return deref(self._MQMessageExt_impl_obj).getQueueId()
 
     @property
     def queue_offset(self):
-        return self._MQMessageExt_impl_obj.getQueueOffset()
+        return deref(self._MQMessageExt_impl_obj).getQueueOffset()
 
     @property
     def commit_log_offset(self):
-        return self._MQMessageExt_impl_obj.getCommitLogOffset()
+        return deref(self._MQMessageExt_impl_obj).getCommitLogOffset()
 
     @property
     def sys_flag(self):
-        return self._MQMessageExt_impl_obj.getSysFlag()
+        return deref(self._MQMessageExt_impl_obj).getSysFlag()
 
     @property
     def born_timestamp(self):
-        return self._MQMessageExt_impl_obj.getBornTimestamp()
+        return deref(self._MQMessageExt_impl_obj).getBornTimestamp()
 
     @property
     def born_host(self):
-        return bytes2str(self._MQMessageExt_impl_obj.getBornHostString())
+        return bytes2str(deref(self._MQMessageExt_impl_obj).getBornHostString())
 
     @property
     def store_timestamp(self):
-        return self._MQMessageExt_impl_obj.getStoreTimestamp()
+        return deref(self._MQMessageExt_impl_obj).getStoreTimestamp()
 
     @property
     def store_host(self):
-        return bytes2str(self._MQMessageExt_impl_obj.getStoreHostString())
+        return bytes2str(deref(self._MQMessageExt_impl_obj).getStoreHostString())
 
     @property
     def reconsume_times(self):
-        return self._MQMessageExt_impl_obj.getReconsumeTimes()
+        return deref(self._MQMessageExt_impl_obj).getReconsumeTimes()
 
     @property
     def prepared_transaction_offset(self):
-        return self._MQMessageExt_impl_obj.getPreparedTransactionOffset()
+        return deref(self._MQMessageExt_impl_obj).getPreparedTransactionOffset()
 
     @property
     def msg_id(self):
-        return bytes2str(self._MQMessageExt_impl_obj.getMsgId())
+        return bytes2str(deref(self._MQMessageExt_impl_obj).getMsgId())
 
 
 cdef class PyMessageQueue:
@@ -283,6 +300,12 @@ cdef class PyMessageQueue:
 
     def __str__(self):
         return bytes2str(self._MQMessageQueue_impl_obj.toString())
+
+
+def create_reply_message(PyMessage request, body):
+    cdef MQMessage* reply
+    reply = MessageUtil.createReplyMessage(request._MQMessage_impl_obj, str2bytes(body))
+    return PyMessageGuard.from_message(reply)
 
 
 cpdef enum PySendStatus:
@@ -360,21 +383,21 @@ cdef class PyMessageListener:
 
     def consume_message(self, msgs):
         """Callback for consume message in python, return PyConsumeStatus or None."""
-        return PyConsumeStatus.CONSUME_SUCCESS
+        return PyConsumeStatus.RECONSUME_LATER
 
     @staticmethod
-    cdef ConsumeStatus ConsumeMessage(object obj, const vector[MQMessageExt*]& msgs) with gil:
+    cdef ConsumeStatus ConsumeMessage(object obj, const vector[shared_ptr[MQMessageExt]]& msgs) with gil:
         # callback by native SDK in another thread need declare GIL.
 
-        msgs2 = list()
-        cdef vector[MQMessageExt*].iterator it = (<vector[MQMessageExt*]&> msgs).begin()
-        while it != (<vector[MQMessageExt*]&> msgs).end():
+        py_msgs = list()
+        cdef vector[shared_ptr[MQMessageExt]].const_iterator it = msgs.const_begin()
+        while it != msgs.const_end():
             msg = PyMessageExt.from_message_ext(deref(it))
-            msgs2.append(msg)
+            py_msgs.append(msg)
             inc(it)
 
-        cdef PyMessageListenerConcurrently listener = <PyMessageListenerConcurrently> obj
-        status = listener.consume_message(msgs2)
+        cdef PyMessageListener listener = <PyMessageListener> obj
+        status = listener.consume_message(py_msgs)
         if status is None:
             return ConsumeStatus.CONSUME_SUCCESS
         return status
@@ -513,6 +536,11 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
             deref(self._impl_obj).sendOneway(msg._MQMessage_impl_obj)
         else:
             deref(self._impl_obj).sendOneway(msg._MQMessage_impl_obj, deref(mq._MQMessageQueue_impl_obj))
+
+    def request(self, PyMessage msg, long timeout):
+        cdef MQMessage* reply
+        reply = deref(self._impl_obj).request(msg._MQMessage_impl_obj,  timeout)
+        return PyMessageGuard.from_message(reply)
 
 
 cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
