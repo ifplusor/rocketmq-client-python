@@ -223,6 +223,27 @@ cdef extern from "MQClientConfig.h" namespace "rocketmq" nogil:
 
 cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQProducerConfig(MQClientConfig):
+        int getMaxMessageSize() const
+        void setMaxMessageSize(int maxMessageSize)
+
+        int getCompressMsgBodyOverHowmuch() const
+        void setCompressMsgBodyOverHowmuch(int compressMsgBodyOverHowmuch)
+
+        int getCompressLevel() const
+        void setCompressLevel(int compressLevel)
+
+        int getSendMsgTimeout() const
+        void setSendMsgTimeout(int sendMsgTimeout)
+
+        int getRetryTimes() const
+        void setRetryTimes(int times)
+
+        int getRetryTimes4Async() const
+        void setRetryTimes4Async(int times)
+
+        bint isRetryAnotherBrokerWhenNotStoreOK() const
+        void setRetryAnotherBrokerWhenNotStoreOK(bint retryAnotherBrokerWhenNotStoreOK)
+
         bint isSendLatencyFaultEnable() const
         void setSendLatencyFaultEnable(bint sendLatencyFaultEnable)
 

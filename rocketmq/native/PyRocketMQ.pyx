@@ -500,6 +500,62 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
         PyMQClientConfig.set_MQClientConfig_impl_obj(self, self._impl_obj)
 
     @property
+    def max_message_size(self):
+        return deref(self._impl_obj).getMaxMessageSize()
+
+    @max_message_size.setter
+    def max_message_size(self, size):
+        deref(self._impl_obj).setMaxMessageSize(size);
+
+    @property
+    def compress_msg_body_over_howmuch(self):
+        return deref(self._impl_obj).getCompressMsgBodyOverHowmuch()
+
+    @compress_msg_body_over_howmuch.setter
+    def compress_msg_body_over_howmuch(self, size):
+        deref(self._impl_obj).setCompressMsgBodyOverHowmuch(size)
+
+    @property
+    def compress_level(self):
+        return deref(self._impl_obj).getCompressLevel()
+
+    @compress_level.setter
+    def compress_level(self, level):
+        deref(self._impl_obj).setCompressLevel(level)
+
+    @property
+    def send_msg_timeout(self):
+        return deref(self._impl_obj).getSendMsgTimeout()
+
+    @send_msg_timeout.setter
+    def send_msg_timeout(self, timeout):
+        deref(self._impl_obj).setSendMsgTimeout(timeout)
+
+    @property
+    def retry_times(self):
+        return deref(self._impl_obj).getRetryTimes()
+
+    @retry_times.setter
+    def retry_times(self, times):
+        deref(self._impl_obj).setRetryTimes(times)
+
+    @property
+    def retry_times_for_async(self):
+        return deref(self._impl_obj).getRetryTimes4Async()
+
+    @retry_times_for_async.setter
+    def retry_times_for_async(self, times):
+        deref(self._impl_obj).setRetryTimes4Async(times)
+
+    @property
+    def retry_another_broker_when_not_store_ok(self):
+        return deref(self._impl_obj).isRetryAnotherBrokerWhenNotStoreOK()
+
+    @retry_another_broker_when_not_store_ok.setter
+    def retry_another_broker_when_not_store_ok(self, enable):
+        deref(self._impl_obj).setRetryAnotherBrokerWhenNotStoreOK(enable)
+
+    @property
     def send_latency_fault_enable(self):
         return deref(self._impl_obj).isSendLatencyFaultEnable()
 
