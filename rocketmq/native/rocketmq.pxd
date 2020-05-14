@@ -263,6 +263,12 @@ cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
         int getMaxCacheMsgSizePerQueue() const 
         void setMaxCacheMsgSizePerQueue(int maxCacheSize)
 
+        int getMaxReconsumeTimes() const
+        void setMaxReconsumeTimes(int maxReconsumeTimes)
+
+        long getPullTimeDelayMillsWhenException() const
+        void setPullTimeDelayMillsWhenException(long pullTimeDelayMillsWhenException)
+
     cdef cppclass DefaultMQPushConsumer(MQPushConsumer, DefaultMQPushConsumerConfig):
         DefaultMQPushConsumer(const string& groupname) except +
         DefaultMQPushConsumer(const string& groupname, shared_ptr[RPCHook] rpcHook) except +

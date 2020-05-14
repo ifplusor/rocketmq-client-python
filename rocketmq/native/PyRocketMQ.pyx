@@ -644,6 +644,22 @@ cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
     def max_cache_msg_size_pre_queue(self, size):
         deref(self._impl_obj).setMaxCacheMsgSizePerQueue(size)
 
+    @property
+    def max_reconsume_times(self):
+        return deref(self._impl_obj).getMaxReconsumeTimes()
+
+    @max_reconsume_times.setter
+    def max_reconsume_times(self, times):
+        deref(self._impl_obj).setMaxReconsumeTimes(times)
+
+    @property
+    def pull_time_delay_mills_when_exception(self):
+        return deref(self._impl_obj).getPullTimeDelayMillsWhenException()
+
+    @pull_time_delay_mills_when_exception.setter
+    def pull_time_delay_mills_when_exception(self, delay):
+        deref(self._impl_obj).setPullTimeDelayMillsWhenException(delay)
+
     #
     # MQPushConsumer
 
