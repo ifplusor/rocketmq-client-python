@@ -23,34 +23,34 @@ from libcpp.memory cimport shared_ptr
 
 cdef extern from "Message.h" namespace "rocketmq" nogil:
     cdef cppclass Message:
+        const string& topic() const
+        void set_topic(const string& topic)
+
+        const string& tags() const
+        void set_tags(const string& tags)
+
+        const string& keys() const
+        void set_keys(const string& keys)
+        void set_keys(const vector[string]& keys)
+
+        int32_t delay_time_level() const
+        void set_delay_time_level(int32_t level)
+
+        bint wait_store_msg_ok() const
+        void set_wait_store_msg_ok(bint waitStoreMsgOK)
+
+        int32_t flag() const
+        void set_flag(int32_t flag)
+
+        const string& body() const
+        void set_body(const string& body)
+
+        const string& transaction_id() const
+        void set_transaction_id(const string& transactionId)
+
         const string& getProperty(const string& name) const
         void putProperty(const string& name, const string& value)
         void clearProperty(const string& name)
-
-        const string& getTopic() const
-        void setTopic(const string& topic)
-
-        const string& getTags() const
-        void setTags(const string& tags)
-
-        const string& getKeys() const
-        void setKeys(const string& keys)
-        void setKeys(const vector[string]& keys)
-
-        int32_t getDelayTimeLevel() const
-        void setDelayTimeLevel(int32_t level)
-
-        bint isWaitStoreMsgOK() const
-        void setWaitStoreMsgOK(bint waitStoreMsgOK)
-
-        int32_t getFlag() const
-        void setFlag(int32_t flag)
-
-        const string& getBody() const
-        void setBody(const string& body)
-
-        const string& getTransactionId() const
-        void setTransactionId(const string& transactionId)
 
         string toString() const
 
@@ -65,19 +65,19 @@ cdef extern from "MQMessage.h" namespace "rocketmq" nogil:
 
 cdef extern from "MessageExt.h" namespace "rocketmq" nogil:
     cdef cppclass MessageExt(Message):
-        int32_t getStoreSize() const
-        int32_t getBodyCRC() const
-        int32_t getQueueId() const
-        int64_t getQueueOffset() const
-        int64_t getCommitLogOffset() const
-        int32_t getSysFlag() const
-        int64_t getBornTimestamp() const
-        string getBornHostString() const
-        int64_t getStoreTimestamp() const
-        string getStoreHostString() const
-        int32_t getReconsumeTimes() const
-        int64_t getPreparedTransactionOffset() const
-        const string& getMsgId() const
+        int32_t store_size() const
+        int32_t body_crc() const
+        int32_t queue_id() const
+        int64_t queue_offset() const
+        int64_t commit_log_offset() const
+        int32_t sys_flag() const
+        int64_t born_timestamp() const
+        string born_host_string() const
+        int64_t store_timestamp() const
+        string store_host_string() const
+        int32_t reconsume_times() const
+        int64_t prepared_transaction_offset() const
+        const string& msg_id() const
 
 
 cdef extern from "MQMessageExt.h" namespace "rocketmq" nogil:
@@ -92,14 +92,14 @@ cdef extern from "MQMessageQueue.h" namespace "rocketmq" nogil:
 
         MQMessageQueue& operator=(const MQMessageQueue& other);
 
-        const string& getTopic() const
-        void setTopic(const string& topic)
+        const string& topic() const
+        void set_topic(const string& topic)
 
-        const string& getBrokerName() const
-        void setBrokerName(const string& brokerName)
+        const string& broker_name() const
+        void set_broker_name(const string& brokerName)
 
-        int getQueueId() const
-        void setQueueId(int queueId)
+        int queue_id() const
+        void set_queue_id(int queueId)
 
         string toString() const
 
@@ -118,12 +118,12 @@ cdef extern from "SendResult.h" namespace "rocketmq" nogil:
         SendResult() except +
         SendResult(const SendResult& other) except +
 
-        SendStatus getSendStatus() const
-        const string& getMsgId() const
-        const string& getOffsetMsgId() const
-        const MQMessageQueue& getMessageQueue() const
-        int64_t getQueueOffset() const
-        const string& getTransactionId() const
+        SendStatus send_status() const
+        const string& msg_id() const
+        const string& offset_msg_id() const
+        const MQMessageQueue& message_queue() const
+        int64_t queue_offset() const
+        const string& transaction_id() const
 
         string toString() const
 
@@ -195,20 +195,20 @@ cdef extern from "SessionCredentials.h" namespace "rocketmq" nogil:
         SessionCredentials() except +
         SessionCredentials(const string& accessKey, const string& secretKey, const string& authChannel) except +
 
-        const string& getAccessKey()
-        void setAccessKey(const string& accessKey)
+        const string& access_key()
+        void set_access_key(const string& accessKey)
 
-        const string& getSecretKey() const
-        void setSecretKey(const string& secretKey)
+        const string& secret_key() const
+        void set_secret_key(const string& secretKey)
 
-        const string& getSignature() const
-        void setSignature(const string& signature)
+        const string& signature() const
+        void set_signature(const string& signature)
 
-        const string& getSignatureMethod() const
-        void setSignatureMethod(const string& signatureMethod)
+        const string& signature_method() const
+        void set_signature_method(const string& signatureMethod)
 
-        const string& getAuthChannel() const
-        void setAuthChannel(const string& channel)
+        const string& auth_channel() const
+        void set_auth_channel(const string& channel)
 
         bint isValid() const
 
@@ -220,41 +220,41 @@ cdef extern from "ClientRPCHook.h" namespace "rocketmq" nogil:
 
 cdef extern from "MQClientConfig.h" namespace "rocketmq" nogil:
     cdef cppclass MQClientConfig:
-        const string& getGroupName() const
-        void setGroupName(const string& groupname)
+        const string& group_name() const
+        void set_group_name(const string& groupname)
 
-        const string& getNamesrvAddr() const
-        void setNamesrvAddr(const string& namesrvAddr)
+        const string& namesrv_addr() const
+        void set_namesrv_addr(const string& namesrvAddr)
 
-        const string& getInstanceName() const
-        void setInstanceName(const string& instanceName)
+        const string& instance_name() const
+        void set_instance_name(const string& instanceName)
 
 
 cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQProducerConfig(MQClientConfig):
-        int getMaxMessageSize() const
-        void setMaxMessageSize(int maxMessageSize)
+        int max_message_size() const
+        void set_max_message_size(int maxMessageSize)
 
-        int getCompressMsgBodyOverHowmuch() const
-        void setCompressMsgBodyOverHowmuch(int compressMsgBodyOverHowmuch)
+        int compress_msg_body_over_howmuch() const
+        void set_compress_msg_body_over_howmuch(int compressMsgBodyOverHowmuch)
 
-        int getCompressLevel() const
-        void setCompressLevel(int compressLevel)
+        int compress_level() const
+        void set_compress_level(int compressLevel)
 
-        int getSendMsgTimeout() const
-        void setSendMsgTimeout(int sendMsgTimeout)
+        int send_msg_timeout() const
+        void set_send_msg_timeout(int sendMsgTimeout)
 
-        int getRetryTimes() const
-        void setRetryTimes(int times)
+        int retry_times() const
+        void set_retry_times(int times)
 
-        int getRetryTimes4Async() const
-        void setRetryTimes4Async(int times)
+        int retry_times_for_async() const
+        void set_retry_times_for_async(int times)
 
-        bint isRetryAnotherBrokerWhenNotStoreOK() const
-        void setRetryAnotherBrokerWhenNotStoreOK(bint retryAnotherBrokerWhenNotStoreOK)
+        bint retry_another_broker_when_not_store_ok() const
+        void set_retry_another_broker_when_not_store_ok(bint retryAnotherBrokerWhenNotStoreOK)
 
-        bint isSendLatencyFaultEnable() const
-        void setSendLatencyFaultEnable(bint sendLatencyFaultEnable)
+        bint send_latency_fault_enable() const
+        void set_send_latency_fault_enable(bint sendLatencyFaultEnable)
 
     cdef cppclass DefaultMQProducer(MQProducer, DefaultMQProducerConfig):
         DefaultMQProducer(const string& groupname) except +
@@ -263,20 +263,20 @@ cdef extern from "DefaultMQProducer.h" namespace "rocketmq" nogil:
 
 cdef extern from "DefaultMQPushConsumer.h" namespace "rocketmq" nogil:
     cdef cppclass DefaultMQPushConsumerConfig(MQClientConfig):
-        int getConsumeThreadNum() const
-        void setConsumeThreadNum(int threadNum)
+        int consume_thread_nums() const
+        void set_consume_thread_nums(int threadNum)
 
-        int getConsumeMessageBatchMaxSize() const
-        void setConsumeMessageBatchMaxSize(int consumeMessageBatchMaxSize)
+        int consume_message_batch_max_size() const
+        void set_consume_message_batch_max_size(int consumeMessageBatchMaxSize)
 
-        int getMaxCacheMsgSizePerQueue() const 
-        void setMaxCacheMsgSizePerQueue(int maxCacheSize)
+        int max_cache_msg_size_per_queue() const 
+        void set_max_cache_msg_size_per_queue(int maxCacheSize)
 
-        int getMaxReconsumeTimes() const
-        void setMaxReconsumeTimes(int maxReconsumeTimes)
+        int max_reconsume_times() const
+        void set_max_reconsume_times(int maxReconsumeTimes)
 
-        long getPullTimeDelayMillsWhenException() const
-        void setPullTimeDelayMillsWhenException(long pullTimeDelayMillsWhenException)
+        long pull_time_delay_mills_when_exception() const
+        void set_pull_time_delay_mills_when_exception(long pullTimeDelayMillsWhenException)
 
     cdef cppclass DefaultMQPushConsumer(MQPushConsumer, DefaultMQPushConsumerConfig):
         DefaultMQPushConsumer(const string& groupname) except +
