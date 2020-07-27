@@ -14,15 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __PY_MESSAGE_LISTENER_WRAPPER_HPP__
-#define __PY_MESSAGE_LISTENER_WRAPPER_HPP__
+#ifndef ROCKETMQ_NATIVE_MESSAGELISTENERWRAPPER_HPP_
+#define ROCKETMQ_NATIVE_MESSAGELISTENERWRAPPER_HPP_
 
-#include <MQMessageListener.h>
 #include <Python.h>
+
+#include "MQMessageListener.h"
 
 namespace rocketmq {
 
-typedef ConsumeStatus (*ConsumeMessage)(PyObject*, const std::vector<MQMessageExtPtr2>&);
+typedef ConsumeStatus (*ConsumeMessage)(PyObject*, std::vector<MQMessageExt>&);
 
 class MessageListenerWrapper : virtual public MQMessageListener {
  public:
@@ -31,7 +32,7 @@ class MessageListenerWrapper : virtual public MQMessageListener {
     PyEval_InitThreads();
   }
 
-  ConsumeStatus consumeMessage(const std::vector<MQMessageExtPtr2>& msgs) override {
+  ConsumeStatus consumeMessage(std::vector<MQMessageExt>& msgs) override {
     return py_callback_(py_obj_, msgs);
   }
 
@@ -54,4 +55,4 @@ class MessageListenerOrderlyWrapper : public MessageListenerWrapper, public Mess
 
 }  // namespace rocketmq
 
-#endif  // __PY_MESSAGE_LISTENER_WRAPPER_HPP__
+#endif  // ROCKETMQ_NATIVE_MESSAGELISTENERWRAPPER_HPP_

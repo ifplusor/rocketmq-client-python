@@ -53,7 +53,7 @@ native_kernel = Extension(
 
 setup(
     name="rocketmq-client-python",
-    version='2.0.0',
+    version='3.0.0',
     url="https://github.com/apache/rocketmq-client-python",
     description="RocketMQ Python client",
     long_description="RocketMQ Python client is developed on top of rocketmq-client-cpp, which has been proven "

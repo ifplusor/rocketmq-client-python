@@ -21,10 +21,8 @@ from libcpp.vector cimport vector
 from libcpp.memory cimport shared_ptr
 
 
-cdef extern from "MQMessage.h" namespace "rocketmq" nogil:
-    cdef cppclass MQMessage:
-        MQMessage() except +
-
+cdef extern from "Message.h" namespace "rocketmq" nogil:
+    cdef cppclass Message:
         const string& getProperty(const string& name) const
         void putProperty(const string& name, const string& value)
         void clearProperty(const string& name)
@@ -57,8 +55,16 @@ cdef extern from "MQMessage.h" namespace "rocketmq" nogil:
         string toString() const
 
 
-cdef extern from "MQMessageExt.h" namespace "rocketmq" nogil:
-    cdef cppclass MQMessageExt(MQMessage):
+cdef extern from "MQMessage.h" namespace "rocketmq" nogil:
+    cdef cppclass MQMessage(Message):
+        MQMessage() except +
+        MQMessage(shared_ptr[Message] impl) except +
+
+        shared_ptr[Message] getMessageImpl()
+
+
+cdef extern from "MessageExt.h" namespace "rocketmq" nogil:
+    cdef cppclass MessageExt(Message):
         int32_t getStoreSize() const
         int32_t getBodyCRC() const
         int32_t getQueueId() const
@@ -73,7 +79,10 @@ cdef extern from "MQMessageExt.h" namespace "rocketmq" nogil:
         int64_t getPreparedTransactionOffset() const
         const string& getMsgId() const
 
-        string toString() const
+
+cdef extern from "MQMessageExt.h" namespace "rocketmq" nogil:
+    cdef cppclass MQMessageExt(MQMessage, MessageExt):
+        pass
 
 
 cdef extern from "MQMessageQueue.h" namespace "rocketmq" nogil:
@@ -98,7 +107,7 @@ cdef extern from "MQMessageQueue.h" namespace "rocketmq" nogil:
 cdef extern from "MessageUtil.h" namespace "rocketmq" nogil:
     cdef cppclass MessageUtil:
         @staticmethod
-        MQMessage* createReplyMessage(const MQMessage* requestMessage, const string& body) except +
+        MQMessage createReplyMessage(const MQMessage requestMessage, const string& body) except +
 
 
 cdef extern from "SendResult.h" namespace "rocketmq" nogil:
@@ -127,16 +136,16 @@ cdef extern from "MQProducer.h" namespace "rocketmq" nogil:
         # Trick Cython for overloads, see: https://stackoverflow.com/a/42627030/6298032
 
         SendResult send(...) except +
-        SendResult sync_send "send"(MQMessage* msg) except +
-        SendResult sync_send_with_timeout "send"(MQMessage* msg, long timeout) except +
-        SendResult sync_send_to_mq "send"(MQMessage* msg, const MQMessageQueue& mq, long timeout) except +
-        SendResult sync_send_to_mq_with_timeout "send"(MQMessage* msg, const MQMessageQueue& mq, long timeout) except +
+        SendResult sync_send "send"(MQMessage msg) except +
+        SendResult sync_send_with_timeout "send"(MQMessage msg, long timeout) except +
+        SendResult sync_send_to_mq "send"(MQMessage msg, const MQMessageQueue& mq, long timeout) except +
+        SendResult sync_send_to_mq_with_timeout "send"(MQMessage msg, const MQMessageQueue& mq, long timeout) except +
 
         void sendOneway(...) except +
-        void oneway_send "sendOneway"(MQMessage* msg) except +
-        void oneway_send_to_mq "sendOneway"(MQMessage* msg, const MQMessageQueue& mq) except +
+        void oneway_send "sendOneway"(MQMessage msg) except +
+        void oneway_send_to_mq "sendOneway"(MQMessage msg, const MQMessageQueue& mq) except +
 
-        MQMessage* request(MQMessage* msg, long timeout) except +
+        MQMessage request(MQMessage msg, long timeout) except +
 
 
 cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
@@ -144,7 +153,7 @@ cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
         CONSUME_SUCCESS, RECONSUME_LATER
 
     cdef cppclass MQMessageListener:
-        ConsumeStatus consumeMessage(const vector[shared_ptr[MQMessageExt]]& msgs)
+        ConsumeStatus consumeMessage(const vector[MQMessageExt]& msgs)
 
     cdef cppclass MessageListenerConcurrently(MQMessageListener):
         pass
@@ -153,7 +162,7 @@ cdef extern from "MQMessageListener.h" namespace "rocketmq" nogil:
         pass
 
 
-ctypedef ConsumeStatus (*ConsumeMessage)(object, const vector[shared_ptr[MQMessageExt]] &)
+ctypedef ConsumeStatus (*ConsumeMessage)(object, vector[MQMessageExt] &)
 
 
 cdef extern from "MessageListenerWrapper.hpp" namespace "rocketmq" nogil:
