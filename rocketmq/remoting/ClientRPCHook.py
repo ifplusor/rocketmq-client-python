@@ -15,5 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ..native import PySessionCredentials as SessionCredentials
-from ..native import PyClientRPCHook as ClientRPCHook
+
+__all__ = [
+    "SessionCredentials",
+    "ClientRPCHook",
+]
+
+from ..native import SessionCredentials
+from ..native import ClientRPCHook

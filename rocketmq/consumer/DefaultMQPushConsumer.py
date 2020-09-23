@@ -15,8 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+__all__ = [
+    "MessageExt",
+    "MessageUtil",
+    "ConsumeStatus",
+    "MessageListenerConcurrently",
+    "MessageListenerOrderly",
+    "DefaultMQPushConsumer",
+]
+
 from ..message import MessageExt, MessageUtil
-from ..native import PyConsumeStatus as ConsumeStatus
-from ..native import PyMessageListenerConcurrently as MessageListenerConcurrently
-from ..native import PyMessageListenerOrderly as MessageListenerOrderly
-from ..native import PyDefaultMQPushConsumer as DefaultMQPushConsumer
+from ..native import ConsumeStatus, MessageListenerConcurrently, MessageListenerOrderly, DefaultMQPushConsumer

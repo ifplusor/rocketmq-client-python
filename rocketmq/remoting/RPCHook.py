@@ -15,4 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ..native import PyRPCHook
+
+__all__ = [
+    "RPCHook",
+]
+
+from ..native import RPCHook

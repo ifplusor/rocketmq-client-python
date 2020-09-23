@@ -15,4 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .DefaultMQPushConsumer import *
+
+__all__ = [
+    "MessageExt",
+    "MessageUtil",
+    "ConsumeStatus",
+    "MessageListenerConcurrently",
+    "MessageListenerOrderly",
+    "DefaultMQPushConsumer",
+    "DefaultLitePullConsumer",
+]
+
+from ..message import MessageExt, MessageUtil
+from .DefaultMQPushConsumer import (
+    ConsumeStatus,
+    MessageListenerConcurrently,
+    MessageListenerOrderly,
+    DefaultMQPushConsumer,
+)
+from .DefaultLitePullConsumer import DefaultLitePullConsumer

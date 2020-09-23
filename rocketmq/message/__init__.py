@@ -15,5 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .Message import *
-from .MessageQueue import *
+
+__all__ = [
+    "Message",
+    "MessageExt",
+    "MessageQueue",
+    "MessageUtil",
+]
+
+from .Message import Message, MessageExt
+from .MessageQueue import MessageQueue
+from . import MessageUtil

@@ -15,5 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ..native import PyMessage as Message
-from ..native import PyMessageExt as MessageExt
+
+__all__ = [
+    "Message",
+    "MessageExt",
+]
+
+from ..native import Message, MessageExt

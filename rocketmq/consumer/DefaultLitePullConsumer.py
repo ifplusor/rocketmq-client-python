@@ -17,12 +17,9 @@
 #
 
 __all__ = [
-    "Message",
-    "MessageQueue",
-    "SendStatus",
-    "SendResult",
-    "DefaultMQProducer",
+    "MessageExt",
+    "DefaultLitePullConsumer",
 ]
 
-from ..message import Message, MessageQueue
-from ..native import SendStatus, SendResult, DefaultMQProducer
+from ..message import MessageExt
+from ..native import DefaultLitePullConsumer

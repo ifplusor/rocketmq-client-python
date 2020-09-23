@@ -15,5 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .RPCHook import *
-from .ClientRPCHook import *
+
+__all__ = [
+    "RPCHook",
+    "SessionCredentials",
+    "ClientRPCHook",
+]
+
+from .RPCHook import RPCHook
+from .ClientRPCHook import SessionCredentials, ClientRPCHook

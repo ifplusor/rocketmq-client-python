@@ -15,4 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .DefaultMQProducer import *
+
+__all__ = [
+    "Message",
+    "MessageQueue",
+    "SendStatus",
+    "SendResult",
+    "DefaultMQProducer",
+]
+
+from ..message import Message, MessageQueue
+from .DefaultMQProducer import SendStatus, SendResult, DefaultMQProducer

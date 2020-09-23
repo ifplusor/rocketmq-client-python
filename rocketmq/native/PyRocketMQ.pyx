@@ -30,7 +30,7 @@ from rocketmq cimport Message, MessageExt, MQMessage, MQMessageExt, MQMessageQue
 from rocketmq cimport SendStatus, SendResult
 from rocketmq cimport ConsumeStatus, MessageListenerWrapper, MessageListenerConcurrentlyWrapper, MessageListenerOrderlyWrapper
 from rocketmq cimport RPCHook, SessionCredentials, ClientRPCHook
-from rocketmq cimport MQClientConfig, DefaultMQProducer, DefaultMQPushConsumer
+from rocketmq cimport MQClientConfig, DefaultMQProducer, DefaultMQPushConsumer, DefaultLitePullConsumer
 
 import sys
 
@@ -117,8 +117,8 @@ cdef class PyMessage:
         return deref(self.message_impl_).delay_time_level()
 
     @delay_time_level.setter
-    def delay_time_level(self, level):
-        deref(self.message_impl_).set_delay_time_level(level)
+    def delay_time_level(self, delay_time_level):
+        deref(self.message_impl_).set_delay_time_level(delay_time_level)
 
     @property
     def wait_store_msg_ok(self):
@@ -166,9 +166,6 @@ cdef class PyMessage:
 
 
 cdef class PyMessageGuard(PyMessage):
-
-    # cdef void set_message_impl(self, shared_ptr[Message] msg):
-    #     PyMessage.set_message_impl(self, msg)
 
     @staticmethod
     cdef PyMessage from_message(MQMessage& message):
@@ -250,11 +247,11 @@ cdef class PyMessageQueue:
     def __dealloc__(self):
         del self.message_queue_impl_
 
-    def __init__(self, topic=None, brokerName=None, queueId=None):
-        if topic is None or brokerName is None or queueId is None:
+    def __init__(self, topic=None, broker_name=None, queue_id=None):
+        if topic is None or broker_name is None or queue_id is None:
             self.message_queue_impl_ = new MQMessageQueue()
         else:
-            self.message_queue_impl_ = new MQMessageQueue(str2bytes(topic), str2bytes(brokerName), str2bytes(queueId))
+            self.message_queue_impl_ = new MQMessageQueue(str2bytes(topic), str2bytes(broker_name), queue_id)
 
     @staticmethod
     cdef PyMessageQueue from_message_queue(const MQMessageQueue* mq):
@@ -421,8 +418,8 @@ cdef class PySessionCredentials:
     def __dealloc__(self):
         del self.session_credentials_
 
-    def __init__(self, accessKey, secretKey, authChannel):
-        self.session_credentials_ = new SessionCredentials(str2bytes(accessKey), str2bytes(secretKey), str2bytes(authChannel))
+    def __init__(self, access_key, secret_key, auth_channel):
+        self.session_credentials_ = new SessionCredentials(str2bytes(access_key), str2bytes(secret_key), str2bytes(auth_channel))
 
 
 cdef class PyClientRPCHook(PyRPCHook):
@@ -448,24 +445,24 @@ cdef class PyMQClientConfig:
         return bytes2str(self.client_config_impl_.group_name())
 
     @group_name.setter
-    def group_name(self, groupname):
-        self.client_config_impl_.set_group_name(str2bytes(groupname))
+    def group_name(self, group_name):
+        self.client_config_impl_.set_group_name(str2bytes(group_name))
 
     @property
     def namesrv_addr(self):
         return bytes2str(self.client_config_impl_.namesrv_addr())
 
     @namesrv_addr.setter
-    def namesrv_addr(self, addr):
-        self.client_config_impl_.set_namesrv_addr(str2bytes(addr))
+    def namesrv_addr(self, namesrv_addr):
+        self.client_config_impl_.set_namesrv_addr(str2bytes(namesrv_addr))
 
     @property
     def instance_name(self):
         return bytes2str(self.client_config_impl_.instance_name())
 
     @instance_name.setter
-    def instance_name(self, name):
-        self.client_config_impl_.set_instance_name(str2bytes(name))
+    def instance_name(self, instance_name):
+        self.client_config_impl_.set_instance_name(str2bytes(instance_name))
 
 
 cdef class PyDefaultMQProducer(PyMQClientConfig):
@@ -479,11 +476,11 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
     def __dealloc__(self):
         del self.producer_impl_
 
-    def __init__(self, groupname, PyRPCHook rpcHook=None):
-        if rpcHook is None:
-            self.producer_impl_ = new DefaultMQProducer(str2bytes(groupname))
+    def __init__(self, group_name, PyRPCHook rpc_hook=None):
+        if rpc_hook is None:
+            self.producer_impl_ = new DefaultMQProducer(str2bytes(group_name))
         else:
-            self.producer_impl_ = new DefaultMQProducer(str2bytes(groupname), rpcHook.rpc_hook_impl_)
+            self.producer_impl_ = new DefaultMQProducer(str2bytes(group_name), rpc_hook.rpc_hook_impl_)
         PyMQClientConfig.set_client_config_impl(self, self.producer_impl_)
 
     @property
@@ -491,64 +488,64 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
         return deref(self.producer_impl_).max_message_size()
 
     @max_message_size.setter
-    def max_message_size(self, size):
-        deref(self.producer_impl_).set_max_message_size(size);
+    def max_message_size(self, max_message_size):
+        deref(self.producer_impl_).set_max_message_size(max_message_size);
 
     @property
     def compress_msg_body_over_howmuch(self):
         return deref(self.producer_impl_).compress_msg_body_over_howmuch()
 
     @compress_msg_body_over_howmuch.setter
-    def compress_msg_body_over_howmuch(self, size):
-        deref(self.producer_impl_).set_compress_msg_body_over_howmuch(size)
+    def compress_msg_body_over_howmuch(self, compress_msg_body_over_howmuch):
+        deref(self.producer_impl_).set_compress_msg_body_over_howmuch(compress_msg_body_over_howmuch)
 
     @property
     def compress_level(self):
         return deref(self.producer_impl_).compress_level()
 
     @compress_level.setter
-    def compress_level(self, level):
-        deref(self.producer_impl_).set_compress_level(level)
+    def compress_level(self, compress_level):
+        deref(self.producer_impl_).set_compress_level(compress_level)
 
     @property
     def send_msg_timeout(self):
         return deref(self.producer_impl_).send_msg_timeout()
 
     @send_msg_timeout.setter
-    def send_msg_timeout(self, timeout):
-        deref(self.producer_impl_).set_send_msg_timeout(timeout)
+    def send_msg_timeout(self, send_msg_timeout):
+        deref(self.producer_impl_).set_send_msg_timeout(send_msg_timeout)
 
     @property
     def retry_times(self):
         return deref(self.producer_impl_).retry_times()
 
     @retry_times.setter
-    def retry_times(self, times):
-        deref(self.producer_impl_).set_retry_times(times)
+    def retry_times(self, retry_times):
+        deref(self.producer_impl_).set_retry_times(retry_times)
 
     @property
     def retry_times_for_async(self):
         return deref(self.producer_impl_).retry_times_for_async()
 
     @retry_times_for_async.setter
-    def retry_times_for_async(self, times):
-        deref(self.producer_impl_).set_retry_times_for_async(times)
+    def retry_times_for_async(self, retry_times_for_async):
+        deref(self.producer_impl_).set_retry_times_for_async(retry_times_for_async)
 
     @property
     def retry_another_broker_when_not_store_ok(self):
         return deref(self.producer_impl_).retry_another_broker_when_not_store_ok()
 
     @retry_another_broker_when_not_store_ok.setter
-    def retry_another_broker_when_not_store_ok(self, enable):
-        deref(self.producer_impl_).set_retry_another_broker_when_not_store_ok(enable)
+    def retry_another_broker_when_not_store_ok(self, retry_another_broker_when_not_store_ok):
+        deref(self.producer_impl_).set_retry_another_broker_when_not_store_ok(retry_another_broker_when_not_store_ok)
 
     @property
     def send_latency_fault_enable(self):
         return deref(self.producer_impl_).send_latency_fault_enable()
 
     @send_latency_fault_enable.setter
-    def send_latency_fault_enable(self, enable):
-        deref(self.producer_impl_).set_send_latency_fault_enable(enable)
+    def send_latency_fault_enable(self, send_latency_fault_enable):
+        deref(self.producer_impl_).set_send_latency_fault_enable(send_latency_fault_enable)
 
     #
     # MQProducer
@@ -565,22 +562,22 @@ cdef class PyDefaultMQProducer(PyMQClientConfig):
         cdef MQMessage message = msg.get_message()
         if mq is None:
             if timeout > 0:
-                ret = deref(self.producer_impl_).send(message, timeout)
+                ret = deref(self.producer_impl_).sync_send_with_timeout(message, timeout)
             else:
-                ret = deref(self.producer_impl_).send(message)
+                ret = deref(self.producer_impl_).sync_send(message)
         else:
             if timeout > 0:
-                ret = deref(self.producer_impl_).send(message, deref(mq.message_queue_impl_), timeout)
+                ret = deref(self.producer_impl_).sync_send_to_mq_with_timeout(message, deref(mq.message_queue_impl_), timeout)
             else:
-                ret = deref(self.producer_impl_).send(message, deref(mq.message_queue_impl_))
+                ret = deref(self.producer_impl_).sync_send_to_mq(message, deref(mq.message_queue_impl_))
         return PySendResult.from_result(&ret)
 
-    def sendOneway(self, PyMessage msg, PyMessageQueue mq=None):
+    def send_oneway(self, PyMessage msg, PyMessageQueue mq=None):
         cdef MQMessage message = msg.get_message()
         if mq is None:
-            deref(self.producer_impl_).sendOneway(message)
+            deref(self.producer_impl_).oneway_send(message)
         else:
-            deref(self.producer_impl_).sendOneway(message, deref(mq.message_queue_impl_))
+            deref(self.producer_impl_).oneway_send_to_mq(message, deref(mq.message_queue_impl_))
 
     def request(self, PyMessage msg, long timeout):
         cdef MQMessage message = msg.get_message()
@@ -600,11 +597,11 @@ cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
     def __dealloc__(self):
         del self.consumer_impl_
 
-    def __init__(self, groupname, PyRPCHook rpcHook=None):
-        if rpcHook is None:
-            self.consumer_impl_ = new DefaultMQPushConsumer(str2bytes(groupname))
+    def __init__(self, group_name, PyRPCHook rpc_hook=None):
+        if rpc_hook is None:
+            self.consumer_impl_ = new DefaultMQPushConsumer(str2bytes(group_name))
         else:
-            self.consumer_impl_ = new DefaultMQPushConsumer(str2bytes(groupname), rpcHook.rpc_hook_impl_)
+            self.consumer_impl_ = new DefaultMQPushConsumer(str2bytes(group_name), rpc_hook.rpc_hook_impl_)
         PyMQClientConfig.set_client_config_impl(self, self.consumer_impl_)
 
         self.listener = None
@@ -614,40 +611,48 @@ cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
         return deref(self.consumer_impl_).consume_thread_nums()
 
     @consume_thread_nums.setter
-    def consume_thread_nums(self, num):
-        deref(self.consumer_impl_).set_consume_thread_nums(num)
+    def consume_thread_nums(self, consume_thread_nums):
+        deref(self.consumer_impl_).set_consume_thread_nums(consume_thread_nums)
+
+    @property
+    def pull_threshold_for_queue(self):
+        return deref(self.consumer_impl_).pull_threshold_for_queue()
+
+    @pull_threshold_for_queue.setter
+    def pull_threshold_for_queue(self, pull_threshold_for_queue):
+        deref(self.consumer_impl_).set_pull_threshold_for_queue(pull_threshold_for_queue)
 
     @property
     def consume_message_batch_max_size(self):
         return deref(self.consumer_impl_).consume_message_batch_max_size()
 
     @consume_message_batch_max_size.setter
-    def consume_message_batch_max_size(self, size):
-        deref(self.consumer_impl_).set_consume_message_batch_max_size(size)
+    def consume_message_batch_max_size(self, consume_message_batch_max_size):
+        deref(self.consumer_impl_).set_consume_message_batch_max_size(consume_message_batch_max_size)
 
     @property
-    def max_cache_msg_size_per_queue(self):
-        return deref(self.consumer_impl_).max_cache_msg_size_per_queue()
+    def pull_batch_size(self):
+        return deref(self.consumer_impl_).pull_batch_size()
 
-    @max_cache_msg_size_per_queue.setter
-    def max_cache_msg_size_per_queue(self, size):
-        deref(self.consumer_impl_).set_max_cache_msg_size_per_queue(size)
+    @pull_batch_size.setter
+    def pull_batch_size(self, pull_batch_size):
+        deref(self.consumer_impl_).set_pull_batch_size(pull_batch_size)
 
     @property
     def max_reconsume_times(self):
         return deref(self.consumer_impl_).max_reconsume_times()
 
     @max_reconsume_times.setter
-    def max_reconsume_times(self, times):
-        deref(self.consumer_impl_).set_max_reconsume_times(times)
+    def max_reconsume_times(self, max_reconsume_times):
+        deref(self.consumer_impl_).set_max_reconsume_times(max_reconsume_times)
 
     @property
-    def pull_time_delay_mills_when_exception(self):
-        return deref(self.consumer_impl_).pull_time_delay_mills_when_exception()
+    def pull_time_delay_millis_when_exception(self):
+        return deref(self.consumer_impl_).pull_time_delay_millis_when_exception()
 
-    @pull_time_delay_mills_when_exception.setter
-    def pull_time_delay_mills_when_exception(self, delay):
-        deref(self.consumer_impl_).set_pull_time_delay_mills_when_exception(delay)
+    @pull_time_delay_millis_when_exception.setter
+    def pull_time_delay_millis_when_exception(self, pull_time_delay_millis_when_exception):
+        deref(self.consumer_impl_).set_pull_time_delay_millis_when_exception(pull_time_delay_millis_when_exception)
 
     #
     # MQPushConsumer
@@ -659,9 +664,166 @@ cdef class PyDefaultMQPushConsumer(PyMQClientConfig):
         with nogil:
             deref(self.consumer_impl_).shutdown()
 
-    cpdef registerMessageListener(self, PyMessageListener messageListener):
-        deref(self.consumer_impl_).registerMessageListener(messageListener.message_listener_impl_)
-        self.listener = messageListener
+    cpdef register_message_listener(self, PyMessageListener message_listener):
+        if isinstance(message_listener, PyMessageListenerConcurrently):
+            deref(self.consumer_impl_).register_message_listener_concurrently(<MessageListenerConcurrentlyWrapper*> message_listener.message_listener_impl_)
+        elif isinstance(message_listener, PyMessageListenerOrderly):
+            deref(self.consumer_impl_).register_message_listener_orderly(<MessageListenerOrderlyWrapper*> message_listener.message_listener_impl_)
+        else:
+            raise Exception("Unknown listener type.")
+        self.listener = message_listener
 
     def subscribe(self, topic, sub_expression):
         deref(self.consumer_impl_).subscribe(str2bytes(topic), str2bytes(sub_expression))
+
+
+cdef class PyDefaultLitePullConsumer(PyMQClientConfig):
+    """Wrapper of DefaultLitePullConsumer"""
+
+    cdef DefaultLitePullConsumer* consumer_impl_
+
+    def __cinit__(self):
+        self.consumer_impl_ = NULL
+
+    def __dealloc__(self):
+        del self.consumer_impl_
+
+    def __init__(self, group_name, PyRPCHook rpc_hook=None):
+        if rpc_hook is None:
+            self.consumer_impl_ = new DefaultLitePullConsumer(str2bytes(group_name))
+        else:
+            self.consumer_impl_ = new DefaultLitePullConsumer(str2bytes(group_name), rpc_hook.rpc_hook_impl_)
+        PyMQClientConfig.set_client_config_impl(self, self.consumer_impl_)
+
+    @property
+    def auto_commit(self):
+        return deref(self.consumer_impl_).isAutoCommit()
+
+    @auto_commit.setter
+    def auto_commit(self, auto_commit):
+        deref(self.consumer_impl_).setAutoCommit(auto_commit)
+
+    @property
+    def auto_commit_interval_millis(self):
+        return deref(self.consumer_impl_).auto_commit_interval_millis()
+
+    @auto_commit_interval_millis.setter
+    def auto_commit_interval_millis(self, auto_commit_interval_millis):
+        deref(self.consumer_impl_).set_auto_commit_interval_millis(auto_commit_interval_millis)
+
+    @property
+    def pull_batch_size(self):
+        return deref(self.consumer_impl_).pull_batch_size()
+
+    @pull_batch_size.setter
+    def pull_batch_size(self, pull_batch_size):
+        deref(self.consumer_impl_).set_pull_batch_size(pull_batch_size)
+
+    @property
+    def pull_thread_nums(self):
+        return deref(self.consumer_impl_).pull_thread_nums()
+
+    @pull_thread_nums.setter
+    def pull_thread_nums(self, pull_thread_nums):
+        deref(self.consumer_impl_).set_pull_thread_nums(pull_thread_nums)
+
+    @property
+    def long_polling_enable(self):
+        return deref(self.consumer_impl_).long_polling_enable()
+
+    @long_polling_enable.setter
+    def long_polling_enable(self, long_polling_enable):
+        deref(self.consumer_impl_).set_long_polling_enable(long_polling_enable)
+
+    @property
+    def consumer_pull_timeout_millis(self):
+        return deref(self.consumer_impl_).consumer_pull_timeout_millis()
+
+    @consumer_pull_timeout_millis.setter
+    def consumer_pull_timeout_millis(self, consumer_pull_timeout_millis):
+        deref(self.consumer_impl_).set_consumer_pull_timeout_millis(consumer_pull_timeout_millis)
+
+    @property
+    def consumer_timeout_millis_when_suspend(self):
+        return deref(self.consumer_impl_).consumer_timeout_millis_when_suspend()
+
+    @consumer_timeout_millis_when_suspend.setter
+    def consumer_timeout_millis_when_suspend(self, consumer_timeout_millis_when_suspend):
+        deref(self.consumer_impl_).set_consumer_timeout_millis_when_suspend(consumer_timeout_millis_when_suspend)
+
+    @property
+    def broker_suspend_max_time_millis(self):
+        return deref(self.consumer_impl_).broker_suspend_max_time_millis()
+
+    @broker_suspend_max_time_millis.setter
+    def broker_suspend_max_time_millis(self, broker_suspend_max_time_millis):
+        deref(self.consumer_impl_).set_broker_suspend_max_time_millis(broker_suspend_max_time_millis)
+
+    @property
+    def pull_threshold_for_all(self):
+        return deref(self.consumer_impl_).pull_threshold_for_all()
+
+    @pull_threshold_for_all.setter
+    def pull_threshold_for_all(self, pull_threshold_for_all):
+        deref(self.consumer_impl_).set_pull_threshold_for_all(pull_threshold_for_all)
+
+    @property
+    def pull_threshold_for_queue(self):
+        return deref(self.consumer_impl_).pull_threshold_for_queue()
+
+    @pull_threshold_for_queue.setter
+    def pull_threshold_for_queue(self, pull_threshold_for_queue):
+        deref(self.consumer_impl_).set_pull_threshold_for_queue(pull_threshold_for_queue)
+
+    @property
+    def pull_time_delay_millis_when_exception(self):
+        return deref(self.consumer_impl_).pull_time_delay_millis_when_exception()
+
+    @pull_time_delay_millis_when_exception.setter
+    def pull_time_delay_millis_when_exception(self, pull_time_delay_millis_when_exception):
+        deref(self.consumer_impl_).set_pull_time_delay_millis_when_exception(pull_time_delay_millis_when_exception)
+
+    @property
+    def poll_timeout_millis(self):
+        return deref(self.consumer_impl_).poll_timeout_millis()
+
+    @poll_timeout_millis.setter
+    def poll_timeout_millis(self, poll_timeout_millis):
+        deref(self.consumer_impl_).set_poll_timeout_millis(poll_timeout_millis)
+
+    @property
+    def topic_metadata_check_interval_millis(self):
+        return deref(self.consumer_impl_).topic_metadata_check_interval_millis()
+
+    @topic_metadata_check_interval_millis.setter
+    def topic_metadata_check_interval_millis(self, topic_metadata_check_interval_millis):
+        deref(self.consumer_impl_).set_topic_metadata_check_interval_millis(topic_metadata_check_interval_millis)
+
+    #
+    # LitePullConsumer
+
+    def start(self):
+        deref(self.consumer_impl_).start()
+
+    def shutdown(self):
+        with nogil:
+            deref(self.consumer_impl_).shutdown()
+
+    def subscribe(self, topic, sub_expression):
+        deref(self.consumer_impl_).subscribe(str2bytes(topic), str2bytes(sub_expression))
+
+    def poll(self, timeout=None):
+        cdef vector[MQMessageExt] msgs
+        if timeout is None:
+            msgs = deref(self.consumer_impl_).poll_default()
+        else:
+            msgs = deref(self.consumer_impl_).poll_with_timeout(timeout)
+
+        py_message_ext_list = list()
+        cdef vector[MQMessageExt].iterator it = msgs.begin()
+        while it != msgs.end():
+            message_ext = PyMessageExt.from_message_ext(deref(it))
+            py_message_ext_list.append(message_ext)
+            inc(it)
+
+        return py_message_ext_list
